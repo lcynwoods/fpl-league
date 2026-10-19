@@ -1,0 +1,8 @@
+# conda env create -f environment.yml && conda activate fpl-league
+name: fpl-league
+channels:
+  - conda-forge
+dependencies:
+  - python>=3.11
+  # No runtime dependencies -- fpl.py uses stdlib urllib/json only.
+  - pytest>=8.0   # development only

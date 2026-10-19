@@ -1,0 +1,1121 @@
+{
+  "_note": "Season 3 of the 7 Stars league. Each manager holds one GK club and one DEF club (fixed all season) plus seven goal scorers. \"OWN\" is the Own Goals pick: it scores every own goal in the league that week.",
+  "_transfers": "squads is a history, not a single line-up: each entry applies from its \"from\" gameweek until the next one. A transfer window lets a manager change up to three OUTFIELD picks (never the GK or DEF club) and stay inside budget. Windows are irregular. To record one, append a new entry -- do not edit the old one, or past weeks get rescored with a squad that was not on the pitch at the time.",
+  "_unknown": "Resolved: the opening line-ups are recorded below. One transfer window falls between GW5 and GW6 and fits 11 of 15 managers; the other four are explained by a scoring error in the league sheet, not by a different transfer date -- see test_standings.py.",
+  "_adjustments": "Goals the league has re-attributed. The FPL API reflects the original attribution and is not always updated when a goal is reassigned, but the league's ruling is what the table is scored on -- so these are applied on top of the API, per gameweek, before anything is counted.",
+  "season": "Season 3",
+  "previous_champion": "Kirk",
+  "_previous_champion": "Holder of the title going into this season; shown with a crown beside their name.",
+  "first_gameweek": 3,
+  "points": {
+    "win": 3,
+    "draw": 1,
+    "loss": 0
+  },
+  "adjustments": [
+    {
+      "gameweek": 4,
+      "goals": 1,
+      "from": [
+        330,
+        "Bogle"
+      ],
+      "to": [
+        346,
+        "Calvert-Lewin"
+      ],
+      "note": "Leeds 4-1 Newcastle. Originally credited to Bogle, later reassigned to Calvert-Lewin. Confirmed by the league; the API still has the original attribution."
+    }
+  ],
+  "managers": {
+    "Kirk": {
+      "gk_club": "Everton",
+      "def_club": "Brighton",
+      "budget": 70,
+      "squads": [
+        {
+          "from": 3,
+          "_note": "opening line-up, from the first selections sheet",
+          "budget": 70,
+          "picks": [
+            [
+              426,
+              "B.Fernandes"
+            ],
+            [
+              490,
+              "Wood"
+            ],
+            [
+              316,
+              "Emersonn"
+            ],
+            [
+              295,
+              "McBurnie"
+            ],
+            "OWN",
+            [
+              230,
+              "Branthwaite"
+            ],
+            [
+              34,
+              "Pau"
+            ]
+          ]
+        },
+        {
+          "from": 6,
+          "_note": "3 pick(s) changed in the window; verified against GW6 scorelines",
+          "picks": [
+            [
+              12,
+              "Saka"
+            ],
+            [
+              426,
+              "B.Fernandes"
+            ],
+            [
+              552,
+              "Brobbey"
+            ],
+            [
+              124,
+              "Groß"
+            ],
+            "OWN",
+            [
+              230,
+              "Branthwaite"
+            ],
+            [
+              34,
+              "Pau"
+            ]
+          ]
+        }
+      ]
+    },
+    "Callum": {
+      "gk_club": "Brentford",
+      "def_club": "Leeds",
+      "budget": 69,
+      "squads": [
+        {
+          "from": 3,
+          "_note": "opening line-up, from the first selections sheet",
+          "budget": 70,
+          "picks": [
+            [
+              12,
+              "Saka"
+            ],
+            [
+              260,
+              "Wilson"
+            ],
+            [
+              94,
+              "Schade"
+            ],
+            [
+              67,
+              "Rayan"
+            ],
+            [
+              454,
+              "Elanga"
+            ],
+            [
+              229,
+              "Tarkowski"
+            ],
+            [
+              259,
+              "Diop"
+            ]
+          ]
+        },
+        {
+          "from": 6,
+          "_note": "3 pick(s) changed in the window; verified against GW6 scorelines",
+          "picks": [
+            [
+              12,
+              "Saka"
+            ],
+            [
+              138,
+              "Kostoulas"
+            ],
+            [
+              94,
+              "Schade"
+            ],
+            [
+              68,
+              "Tavernier"
+            ],
+            [
+              124,
+              "Groß"
+            ],
+            [
+              229,
+              "Tarkowski"
+            ],
+            [
+              259,
+              "Diop"
+            ]
+          ]
+        }
+      ]
+    },
+    "Danny": {
+      "gk_club": "Hull City",
+      "def_club": "Brentford",
+      "budget": 69,
+      "squads": [
+        {
+          "from": 3,
+          "_note": "opening line-up, from the first selections sheet",
+          "budget": 69,
+          "picks": [
+            [
+              379,
+              "Isak"
+            ],
+            [
+              165,
+              "João Pedro"
+            ],
+            [
+              426,
+              "B.Fernandes"
+            ],
+            [
+              464,
+              "Wissa"
+            ],
+            [
+              403,
+              "Sávio"
+            ],
+            [
+              4,
+              "Gabriel"
+            ],
+            [
+              391,
+              "Gvardiol"
+            ]
+          ]
+        },
+        {
+          "from": 6,
+          "_note": "0 pick(s) changed in the window; verified against GW6 scorelines",
+          "picks": [
+            [
+              379,
+              "Isak"
+            ],
+            [
+              165,
+              "João Pedro"
+            ],
+            [
+              426,
+              "B.Fernandes"
+            ],
+            [
+              464,
+              "Wissa"
+            ],
+            [
+              403,
+              "Sávio"
+            ],
+            [
+              4,
+              "Gabriel"
+            ],
+            [
+              391,
+              "Gvardiol"
+            ]
+          ]
+        }
+      ]
+    },
+    "Donal": {
+      "gk_club": "Brentford",
+      "def_club": "Everton",
+      "budget": 70,
+      "squads": [
+        {
+          "from": 3,
+          "_note": "opening line-up, from the first selections sheet",
+          "budget": 70,
+          "picks": [
+            [
+              40,
+              "Rogers"
+            ],
+            [
+              426,
+              "B.Fernandes"
+            ],
+            [
+              156,
+              "Neto"
+            ],
+            [
+              458,
+              "Joelinton"
+            ],
+            "OWN",
+            [
+              4,
+              "Gabriel"
+            ],
+            [
+              418,
+              "Maguire"
+            ]
+          ]
+        },
+        {
+          "from": 6,
+          "_note": "0 pick(s) changed in the window; verified against GW6 scorelines",
+          "picks": [
+            [
+              40,
+              "Rogers"
+            ],
+            [
+              426,
+              "B.Fernandes"
+            ],
+            [
+              156,
+              "Neto"
+            ],
+            [
+              458,
+              "Joelinton"
+            ],
+            "OWN",
+            [
+              4,
+              "Gabriel"
+            ],
+            [
+              418,
+              "Maguire"
+            ]
+          ]
+        }
+      ]
+    },
+    "Jake": {
+      "gk_club": "Leeds",
+      "def_club": "Nott'm Forest",
+      "budget": 70,
+      "squads": [
+        {
+          "from": 3,
+          "_note": "opening line-up, from the first selections sheet",
+          "budget": 70,
+          "picks": [
+            [
+              154,
+              "Palmer"
+            ],
+            [
+              346,
+              "Calvert-Lewin"
+            ],
+            [
+              249,
+              "Barry"
+            ],
+            [
+              53,
+              "Manzambi"
+            ],
+            "OWN",
+            [
+              377,
+              "Munoz"
+            ],
+            [
+              259,
+              "Diop"
+            ]
+          ]
+        },
+        {
+          "from": 6,
+          "_note": "0 pick(s) changed in the window; verified against GW6 scorelines",
+          "picks": [
+            [
+              154,
+              "Palmer"
+            ],
+            [
+              346,
+              "Calvert-Lewin"
+            ],
+            [
+              249,
+              "Barry"
+            ],
+            [
+              53,
+              "Manzambi"
+            ],
+            "OWN",
+            [
+              377,
+              "Munoz"
+            ],
+            [
+              259,
+              "Diop"
+            ]
+          ]
+        }
+      ]
+    },
+    "Jake's Dad": {
+      "gk_club": "Arsenal",
+      "def_club": "Leeds",
+      "budget": 70,
+      "squads": [
+        {
+          "from": 3,
+          "_note": "opening line-up, from the first selections sheet",
+          "budget": 70,
+          "picks": [
+            [
+              426,
+              "B.Fernandes"
+            ],
+            [
+              346,
+              "Calvert-Lewin"
+            ],
+            "OWN",
+            [
+              331,
+              "Gudmundsson"
+            ],
+            [
+              327,
+              "Bijol"
+            ],
+            [
+              334,
+              "Muharemović"
+            ],
+            [
+              598,
+              "Elvedi"
+            ]
+          ]
+        },
+        {
+          "from": 6,
+          "_note": "2 pick(s) changed in the window; verified against GW6 scorelines",
+          "picks": [
+            [
+              426,
+              "B.Fernandes"
+            ],
+            [
+              346,
+              "Calvert-Lewin"
+            ],
+            "OWN",
+            [
+              330,
+              "Bogle"
+            ],
+            [
+              332,
+              "Justin"
+            ],
+            [
+              334,
+              "Muharemović"
+            ],
+            [
+              598,
+              "Elvedi"
+            ]
+          ]
+        }
+      ]
+    },
+    "James": {
+      "gk_club": "Bournemouth",
+      "def_club": "Hull City",
+      "budget": 70,
+      "squads": [
+        {
+          "from": 3,
+          "_note": "opening line-up, from the first selections sheet",
+          "budget": 70,
+          "picks": [
+            [
+              154,
+              "Palmer"
+            ],
+            [
+              12,
+              "Saka"
+            ],
+            [
+              160,
+              "Garnacho"
+            ],
+            [
+              429,
+              "Rashford"
+            ],
+            [
+              526,
+              "Solanke"
+            ],
+            [
+              464,
+              "Wissa"
+            ],
+            [
+              36,
+              "Maatsen"
+            ]
+          ]
+        },
+        {
+          "from": 6,
+          "_note": "2 pick(s) changed in the window; verified against GW6 scorelines",
+          "picks": [
+            [
+              154,
+              "Palmer"
+            ],
+            [
+              12,
+              "Saka"
+            ],
+            [
+              399,
+              "Cherki"
+            ],
+            [
+              429,
+              "Rashford"
+            ],
+            "OWN",
+            [
+              464,
+              "Wissa"
+            ],
+            [
+              36,
+              "Maatsen"
+            ]
+          ]
+        }
+      ]
+    },
+    "Jason": {
+      "gk_club": "Everton",
+      "def_club": "Nott'm Forest",
+      "budget": 69,
+      "squads": [
+        {
+          "from": 3,
+          "_note": "opening line-up, from the first selections sheet",
+          "budget": 70,
+          "picks": [
+            [
+              12,
+              "Saka"
+            ],
+            [
+              13,
+              "Rice"
+            ],
+            [
+              453,
+              "Barnes"
+            ],
+            [
+              491,
+              "Igor Jesus"
+            ],
+            [
+              4,
+              "Gabriel"
+            ],
+            [
+              332,
+              "Justin"
+            ],
+            [
+              473,
+              "Aina"
+            ]
+          ]
+        },
+        {
+          "from": 6,
+          "_note": "3 pick(s) changed in the window; verified against GW6 scorelines",
+          "picks": [
+            [
+              12,
+              "Saka"
+            ],
+            [
+              426,
+              "B.Fernandes"
+            ],
+            [
+              453,
+              "Barnes"
+            ],
+            "OWN",
+            [
+              4,
+              "Gabriel"
+            ],
+            [
+              449,
+              "Hall"
+            ],
+            [
+              473,
+              "Aina"
+            ]
+          ]
+        }
+      ]
+    },
+    "Jon": {
+      "gk_club": "Arsenal",
+      "def_club": "Hull City",
+      "budget": 70,
+      "squads": [
+        {
+          "from": 3,
+          "_note": "opening line-up, from the first selections sheet",
+          "budget": 70,
+          "picks": [
+            [
+              165,
+              "João Pedro"
+            ],
+            [
+              346,
+              "Calvert-Lewin"
+            ],
+            "OWN",
+            [
+              534,
+              "Hume"
+            ],
+            [
+              356,
+              "Virgil"
+            ],
+            [
+              313,
+              "Clarke"
+            ],
+            [
+              415,
+              "Dorgu"
+            ]
+          ]
+        },
+        {
+          "from": 6,
+          "_note": "2 pick(s) changed in the window; verified against GW6 scorelines",
+          "picks": [
+            [
+              165,
+              "João Pedro"
+            ],
+            [
+              346,
+              "Calvert-Lewin"
+            ],
+            "OWN",
+            [
+              542,
+              "E.Le Fée"
+            ],
+            [
+              356,
+              "Virgil"
+            ],
+            [
+              313,
+              "Clarke"
+            ],
+            [
+              277,
+              "Egan"
+            ]
+          ]
+        }
+      ]
+    },
+    "Juha": {
+      "gk_club": "Hull City",
+      "def_club": "Coventry City",
+      "budget": 69,
+      "squads": [
+        {
+          "from": 3,
+          "_note": "opening line-up, from the first selections sheet",
+          "budget": 69,
+          "picks": [
+            [
+              411,
+              "Haaland"
+            ],
+            [
+              12,
+              "Saka"
+            ],
+            [
+              427,
+              "Mbeumo"
+            ],
+            [
+              464,
+              "Wissa"
+            ],
+            "OWN",
+            [
+              245,
+              "Dibling"
+            ],
+            [
+              11,
+              "Mosquera"
+            ]
+          ]
+        },
+        {
+          "from": 6,
+          "_note": "1 pick(s) changed in the window; verified against GW6 scorelines",
+          "picks": [
+            [
+              411,
+              "Haaland"
+            ],
+            [
+              12,
+              "Saka"
+            ],
+            [
+              427,
+              "Mbeumo"
+            ],
+            [
+              464,
+              "Wissa"
+            ],
+            "OWN",
+            [
+              605,
+              "Yalcouyé"
+            ],
+            [
+              11,
+              "Mosquera"
+            ]
+          ]
+        }
+      ]
+    },
+    "Laura": {
+      "gk_club": "Aston Villa",
+      "def_club": "Ipswich Town",
+      "budget": 68,
+      "squads": [
+        {
+          "from": 3,
+          "_note": "opening line-up, from the first selections sheet",
+          "budget": 68,
+          "picks": [
+            [
+              398,
+              "Foden"
+            ],
+            [
+              13,
+              "Rice"
+            ],
+            [
+              371,
+              "Gravenberch"
+            ],
+            [
+              345,
+              "Tanaka"
+            ],
+            [
+              238,
+              "Grealish"
+            ],
+            [
+              331,
+              "Gudmundsson"
+            ],
+            [
+              334,
+              "Muharemović"
+            ]
+          ]
+        },
+        {
+          "from": 6,
+          "_note": "0 pick(s) changed in the window; verified against GW6 scorelines",
+          "picks": [
+            [
+              398,
+              "Foden"
+            ],
+            [
+              13,
+              "Rice"
+            ],
+            [
+              371,
+              "Gravenberch"
+            ],
+            [
+              345,
+              "Tanaka"
+            ],
+            [
+              238,
+              "Grealish"
+            ],
+            [
+              331,
+              "Gudmundsson"
+            ],
+            [
+              334,
+              "Muharemović"
+            ]
+          ]
+        }
+      ]
+    },
+    "Sophie": {
+      "gk_club": "Hull City",
+      "def_club": "Ipswich Town",
+      "budget": 70,
+      "squads": [
+        {
+          "from": 3,
+          "_note": "opening line-up, from the first selections sheet",
+          "budget": 70,
+          "picks": [
+            [
+              411,
+              "Haaland"
+            ],
+            [
+              165,
+              "João Pedro"
+            ],
+            [
+              94,
+              "Schade"
+            ],
+            [
+              316,
+              "Emersonn"
+            ],
+            [
+              268,
+              "King"
+            ],
+            [
+              388,
+              "Guéhi"
+            ],
+            [
+              593,
+              "Dedić"
+            ]
+          ]
+        },
+        {
+          "from": 6,
+          "_note": "0 pick(s) changed in the window; verified against GW6 scorelines",
+          "picks": [
+            [
+              411,
+              "Haaland"
+            ],
+            [
+              165,
+              "João Pedro"
+            ],
+            [
+              94,
+              "Schade"
+            ],
+            [
+              316,
+              "Emersonn"
+            ],
+            [
+              268,
+              "King"
+            ],
+            [
+              388,
+              "Guéhi"
+            ],
+            [
+              593,
+              "Dedić"
+            ]
+          ]
+        }
+      ]
+    },
+    "Quentin": {
+      "gk_club": "Brentford",
+      "def_club": "Newcastle",
+      "budget": 69.5,
+      "squads": [
+        {
+          "from": 3,
+          "_note": "opening line-up, from the first selections sheet",
+          "budget": 70,
+          "picks": [
+            [
+              411,
+              "Haaland"
+            ],
+            [
+              367,
+              "Gakpo"
+            ],
+            [
+              649,
+              "Maitland-Niles"
+            ],
+            [
+              541,
+              "Meunier"
+            ],
+            [
+              290,
+              "Slater"
+            ],
+            [
+              229,
+              "Tarkowski"
+            ],
+            [
+              637,
+              "Vaz"
+            ]
+          ]
+        },
+        {
+          "from": 6,
+          "_note": "2 pick(s) changed in the window; verified against GW6 scorelines",
+          "picks": [
+            [
+              411,
+              "Haaland"
+            ],
+            [
+              124,
+              "Groß"
+            ],
+            "OWN",
+            [
+              649,
+              "Maitland-Niles"
+            ],
+            [
+              290,
+              "Slater"
+            ],
+            [
+              229,
+              "Tarkowski"
+            ],
+            [
+              637,
+              "Vaz"
+            ]
+          ]
+        }
+      ]
+    },
+    "Xenia": {
+      "gk_club": "Hull City",
+      "def_club": "Coventry City",
+      "budget": 70,
+      "squads": [
+        {
+          "from": 3,
+          "_note": "opening line-up, from the first selections sheet",
+          "budget": 70,
+          "picks": [
+            [
+              223,
+              "Mateta"
+            ],
+            [
+              427,
+              "Mbeumo"
+            ],
+            [
+              426,
+              "B.Fernandes"
+            ],
+            [
+              526,
+              "Solanke"
+            ],
+            [
+              209,
+              "Johnson"
+            ],
+            "OWN",
+            [
+              238,
+              "Grealish"
+            ]
+          ]
+        },
+        {
+          "from": 6,
+          "_note": "1 pick(s) changed in the window; verified against GW6 scorelines",
+          "picks": [
+            [
+              154,
+              "Palmer"
+            ],
+            [
+              427,
+              "Mbeumo"
+            ],
+            [
+              426,
+              "B.Fernandes"
+            ],
+            [
+              526,
+              "Solanke"
+            ],
+            [
+              209,
+              "Johnson"
+            ],
+            "OWN",
+            [
+              238,
+              "Grealish"
+            ]
+          ]
+        }
+      ]
+    },
+    "Ziqi": {
+      "gk_club": "Brighton",
+      "def_club": "Brentford",
+      "budget": 69.5,
+      "squads": [
+        {
+          "from": 3,
+          "_note": "opening line-up, from the first selections sheet",
+          "budget": 68,
+          "picks": [
+            [
+              165,
+              "João Pedro"
+            ],
+            [
+              346,
+              "Calvert-Lewin"
+            ],
+            [
+              439,
+              "Šeško"
+            ],
+            [
+              136,
+              "Welbeck"
+            ],
+            [
+              343,
+              "James"
+            ],
+            [
+              36,
+              "Maatsen"
+            ],
+            [
+              34,
+              "Pau"
+            ]
+          ]
+        },
+        {
+          "from": 6,
+          "_note": "2 pick(s) changed in the window; verified against GW6 scorelines",
+          "picks": [
+            [
+              165,
+              "João Pedro"
+            ],
+            [
+              346,
+              "Calvert-Lewin"
+            ],
+            [
+              439,
+              "Šeško"
+            ],
+            [
+              136,
+              "Welbeck"
+            ],
+            [
+              98,
+              "Janelt"
+            ],
+            [
+              116,
+              "Dunk"
+            ],
+            [
+              34,
+              "Pau"
+            ]
+          ]
+        }
+      ]
+    }
+  }
+}

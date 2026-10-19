@@ -1,0 +1,12 @@
+# Cached API responses -- re-fetchable, and goes stale after each gameweek.
+cache/
+
+# Environments
+.venv/
+venv/
+env/
+
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.DS_Store

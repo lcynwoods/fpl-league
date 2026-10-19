@@ -1,0 +1,8 @@
+# Runtime dependencies: none.
+#
+# The FPL API serves plain JSON over HTTPS, so the client in fpl.py uses
+# urllib + json from the standard library. No requests, no BeautifulSoup --
+# there is no HTML to parse. Nothing here is needed to run the app.
+
+# Development only.
+pytest>=8.0

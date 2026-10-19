@@ -1,0 +1,45 @@
+{
+ "_note": "Manager colours. Assigned in order to the managers in teams.json, so a manager keeps their colour wherever they appear. Edit freely -- add, reorder or replace. If there are more managers than colours the list wraps, and two managers will share.",
+ "_chosen": "Picked by maximising the smallest separation between any two colours, measured in OKLab under normal vision and simulated protanopia, deuteranopia and tritanopia (see tools/check_palette.py). This set of 16 separates better than a typical 8-colour palette does: worst all-pairs distance 9.1 normal / 4.7 worst-case colour-blind on light, 8.0 / 5.7 on dark. If you swap colours in, re-run the checker.",
+ "_minimums": {
+  "normal": 8.0,
+  "cvd": 4.5,
+  "contrast": 2.6
+ },
+ "light": [
+  "#53a70b",
+  "#881789",
+  "#d359ba",
+  "#28642a",
+  "#926076",
+  "#45841a",
+  "#a96beb",
+  "#eb5070",
+  "#682dac",
+  "#b1389b",
+  "#4e61de",
+  "#972815",
+  "#8059bb",
+  "#c52c5c",
+  "#3a9ac6",
+  "#72455c"
+ ],
+ "dark": [
+  "#b5d519",
+  "#b83997",
+  "#fd71c0",
+  "#6fa439",
+  "#5165e2",
+  "#757947",
+  "#39b5ff",
+  "#2ae78e",
+  "#d25ec5",
+  "#87be53",
+  "#fca6cc",
+  "#4f93ec",
+  "#ed537c",
+  "#cc361e",
+  "#d49a95",
+  "#9e47be"
+ ]
+}
