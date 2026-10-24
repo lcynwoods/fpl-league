@@ -294,6 +294,36 @@
   .blbl { font-size: 12px; font-weight: 600; fill: var(--text-primary); }
   .nlbl { font-size: 12px; fill: var(--text-secondary); }
   .note { font-size: 12px; color: var(--text-muted); padding: 0 18px 15px; margin: 0; }
+
+  .tw { padding: 12px 18px 16px; font-size: 14px; }
+  .tw .row { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-bottom: 12px; }
+  .tw select, .tw input {
+    font: inherit; font-size: 14px; color: var(--text-primary); background: var(--surface-1);
+    border: 1px solid var(--border-strong); border-radius: 8px; padding: 7px 10px;
+  }
+  .tw input { width: 100%; max-width: 340px; }
+  .tw .deadline { color: var(--text-secondary); font-size: 13px; }
+  .tw .deadline b { color: var(--text-primary); }
+  .tw .grid2 { display: grid; gap: 18px; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); }
+  .tw .slot {
+    display: flex; align-items: center; gap: 8px; width: 100%; text-align: left;
+    background: var(--surface-1); color: var(--text-primary); border: 1px solid var(--border);
+    border-radius: 8px; padding: 6px 10px; margin-bottom: 5px; font-size: 13px; font-weight: 500;
+  }
+  .tw .slot .p { margin-left: auto; color: var(--text-muted); font-variant-numeric: tabular-nums; }
+  .tw .slot .c { color: var(--text-muted); font-size: 12px; }
+  .tw .slot[aria-pressed="true"] { border-color: var(--bad); background: rgb(227 73 72 / 0.08);
+                                   text-decoration: line-through; text-decoration-color: var(--bad); }
+  .tw .slot.incoming { border-color: var(--good); background: rgb(0 131 0 / 0.07); }
+  .tw .slot:disabled { opacity: 0.45; cursor: not-allowed; }
+  .tw .meter { height: 8px; border-radius: 4px; background: var(--surface-2); overflow: hidden; margin: 6px 0 4px; }
+  .tw .meter i { display: block; height: 100%; background: var(--good); }
+  .tw .meter.over i { background: var(--bad); }
+  .tw .sum { font-size: 13px; color: var(--text-secondary); font-variant-numeric: tabular-nums; }
+  .tw .errs { color: var(--bad); font-size: 13px; margin: 8px 0 0; padding-left: 18px; }
+  .tw .ok { color: var(--good); font-size: 13px; margin: 8px 0 0; }
+  .tw .who { display: flex; flex-wrap: wrap; gap: 4px; }
+  .tw .flag { font-size: 11px; font-weight: 700; color: var(--warn); }
 </style>
 </head>
 <body>
@@ -364,6 +394,11 @@
     </table>
     <p class="note">Each week your seven scorers' goals (GS) play your two clubs' goals
       conceded (GA). Win 3, draw 1. Click a row for the week-by-week detail.</p>
+  </div>
+
+  <div class="card" id="tw-card">
+    <h2>Transfer window <span style="text-transform:none;letter-spacing:0;font-weight:400">&mdash; up to three scorers in and out; the clubs stay</span></h2>
+    <div id="tw" class="tw">loading&hellip;</div>
   </div>
 
   <div class="card" id="watch-card" hidden>
@@ -875,6 +910,167 @@ function renderInsights() {
     </div>`;
 }
 
+/* ---- transfer window ------------------------------------------------- */
+let WIN = null, TW = { manager: null, out: [], in: [], q: "", msg: null, errs: [] };
+const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+const money = (n) => "£" + Number(n).toFixed(1) + "m";
+const when = (iso) => new Date(iso).toLocaleString(undefined,
+  { weekday: "short", day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" });
+
+async function twCall(method, path, body) {
+  const r = await fetch(path, { method, headers: { "Content-Type": "application/json" },
+                                body: body ? JSON.stringify(body) : undefined });
+  const out = await r.json();
+  if (!r.ok) { const e = new Error(out.error || r.statusText); e.errors = out.errors || [e.message]; throw e; }
+  return out;
+}
+
+async function loadWindow() {
+  try { WIN = await twCall("GET", "/api/window"); }
+  catch (err) { $("tw").innerHTML = `<span class="caveat">could not load the window: ${esc(err.message)}</span>`; return; }
+  if (!WIN.managers.some((m) => m.manager === TW.manager)) TW.manager = WIN.managers[0]?.manager || null;
+  renderWindow();
+}
+
+function twManager() { return WIN.managers.find((m) => m.manager === TW.manager); }
+function twPlayer(id) { return WIN.players.find((p) => String(p.id) === String(id)); }
+function twSpend(m) {
+  const pin = TW.in.reduce((s, id) => s + twPlayer(id).price, 0);
+  const pout = TW.out.reduce((s, id) => s + m.squad.find((p) => String(p.id) === String(id)).price, 0);
+  return Math.round((m.budget + pin - pout) * 10) / 10;
+}
+
+function renderWindow() {
+  const el = $("tw");
+  if (!WIN.window) {
+    el.innerHTML = `
+      <div class="row">
+        <span>No window is open.</span>
+        <select id="tw-gw">${WIN.upcoming.map((gw) =>
+          `<option value="${gw}">GW${gw} · deadline ${when(WIN.deadlines[gw])}</option>`).join("")}</select>
+        <button id="tw-open"${WIN.upcoming.length ? "" : " disabled"}>Open window</button>
+      </div>
+      <p class="caveat">New squads apply from the gameweek you choose. Nothing is accepted after its deadline.</p>
+      ${TW.errs.length ? `<ul class="errs">${TW.errs.map((e) => `<li>${esc(e)}</li>`).join("")}</ul>` : ""}`;
+    return;
+  }
+  const w = WIN.window, m = twManager();
+  const done = WIN.managers.filter((x) => x.entry);
+  const late = WIN.closed_by_deadline;
+  const spend = twSpend(m), over = WIN.cap != null && spend > WIN.cap + 1e-9;
+  const outIds = new Set(TW.out.map(String)), inIds = new Set(TW.in.map(String));
+  const held = new Set(m.squad.map((p) => String(p.id)));
+  const q = TW.q.trim().toLowerCase();
+  const hits = q.length < 2 ? [] : WIN.players
+    .filter((p) => !held.has(String(p.id)) && !inIds.has(String(p.id)) &&
+                   (p.name.toLowerCase().includes(q) || p.club.toLowerCase().includes(q)))
+    .sort((a, b) => b.price - a.price).slice(0, 10);
+  const room = TW.out.length > TW.in.length;
+  const ready = TW.out.length && TW.out.length === TW.in.length && !over && !late;
+
+  el.innerHTML = `
+    <div class="row">
+      <span class="deadline">Squads apply from <b>GW${w.from}</b> · deadline <b>${WIN.deadline ? when(WIN.deadline) : "unknown"}</b>
+        ${late ? ` · <span class="flag">deadline passed</span>` : ""}</span>
+      <button class="ghost" id="tw-close" style="margin-left:auto">Close window</button>
+    </div>
+    <div class="row">
+      <select id="tw-mgr">${WIN.managers.map((x) =>
+        `<option${x.manager === TW.manager ? " selected" : ""}>${esc(x.manager)}</option>`).join("")}</select>
+      <span class="caveat" style="margin:0">${m.entry
+        ? `Recorded: out ${esc(m.entry.out.join(", "))}; in ${esc(m.entry.in.join(", "))}. Submitting again replaces it.`
+        : "No transfers recorded for this window yet."}</span>
+    </div>
+    <div class="grid2">
+      <div>
+        <h4 class="minih">Squad going in &mdash; tap to transfer out (${TW.out.length}/${WIN.max_swaps})</h4>
+        ${m.squad.map((p) => {
+          const on = outIds.has(String(p.id));
+          const full = !on && TW.out.length >= WIN.max_swaps;
+          return `<button class="slot" data-out="${esc(p.id)}" aria-pressed="${on}"${full || late ? " disabled" : ""}>
+            ${p.code ? `<img class="mug" src="/asset/player/${p.code}" alt="" loading="lazy">` : ""}
+            ${esc(p.name)} <span class="c">${esc(p.club)}</span><span class="p">${money(p.price)}</span></button>`;
+        }).join("")}
+        <p class="caveat">GK club ${esc(m.gk_club)} and DEF club ${esc(m.def_club)} are fixed for the season.</p>
+      </div>
+      <div>
+        <h4 class="minih">Coming in (${TW.in.length}/${TW.out.length})</h4>
+        ${TW.in.map((id) => { const p = twPlayer(id);
+          return `<button class="slot incoming" data-unin="${esc(p.id)}" title="remove">
+            ${esc(p.name)} <span class="c">${esc(p.club)}</span><span class="p">${money(p.price)} ✕</span></button>`; }).join("")}
+        <input id="tw-q" type="search" placeholder="${room ? "Search a player or club…" : "Choose who goes out first"}"
+               value="${esc(TW.q)}" ${room && !late ? "" : "disabled"} autocomplete="off">
+        <div style="margin-top:6px">${hits.map((p) => `<button class="slot" data-in="${esc(p.id)}">
+            ${esc(p.name)} <span class="c">${esc(p.club)} ${esc(p.position)}</span>
+            ${p.status !== "a" ? `<span class="flag" title="${esc(p.news)}">${p.status === "d" ? "doubt" : "out"}</span>` : ""}
+            <span class="p">${money(p.price)}</span></button>`).join("")}</div>
+        <div class="meter${over ? " over" : ""}"><i style="width:${Math.min(100, spend / (WIN.cap || spend) * 100)}%"></i></div>
+        <div class="sum">${money(spend)} of ${money(WIN.cap)} · was ${money(m.budget)}${over ? " · over budget" : ""}</div>
+        <div class="row" style="margin-top:12px">
+          <button id="tw-save"${ready ? "" : " disabled"}>Record transfers</button>
+          ${m.entry && !late ? `<button class="ghost" id="tw-withdraw">Withdraw</button>` : ""}
+        </div>
+      </div>
+    </div>
+    ${TW.errs.length ? `<ul class="errs">${TW.errs.map((e) => `<li>${esc(e)}</li>`).join("")}</ul>` : ""}
+    ${TW.msg ? `<p class="ok">${esc(TW.msg)}</p>` : ""}
+    <p class="caveat">Submitted: ${done.length}/${WIN.managers.length}${done.length ? " — " + done.map((x) => esc(x.manager)).join(", ") : ""}.
+      The budget is checked by difference &mdash; the squad's stated cost, plus what comes in, minus what goes out &mdash;
+      so draft-list errors on kept players can't block a window.</p>`;
+}
+
+function twReset(keepMsg) { TW.out = []; TW.in = []; TW.q = ""; TW.errs = []; if (!keepMsg) TW.msg = null; }
+
+async function twSubmit(body, path, done) {
+  TW.errs = []; TW.msg = null;
+  try { WIN = await twCall("POST", path, body); twReset(); TW.msg = done; ROBOT_KEY = null; }
+  catch (err) { TW.errs = err.errors; }
+  renderWindow();
+}
+
+$("tw").addEventListener("click", (e) => {
+  const b = e.target.closest("button"); if (!b || !WIN) return;
+  if (b.id === "tw-open")
+    return twSubmit({ action: "open", gameweek: Number($("tw-gw").value) }, "/api/window", null);
+  if (b.id === "tw-close") {
+    if (!confirm("Close the window? No more transfers will be accepted for it.")) return;
+    return twSubmit({ action: "close" }, "/api/window", null);
+  }
+  if (b.id === "tw-save") {
+    const m = twManager();
+    const name = (id) => (m.squad.find((p) => String(p.id) === String(id)) || twPlayer(id)).name;
+    if (!confirm(`${TW.manager}, from GW${WIN.window.from}:\n\nOut: ${TW.out.map(name).join(", ")}\nIn: ${TW.in.map(name).join(", ")}`)) return;
+    return twSubmit({ manager: TW.manager, out: TW.out, in: TW.in }, "/api/transfer",
+                    `Recorded for ${TW.manager}.`);
+  }
+  if (b.id === "tw-withdraw") {
+    if (!confirm(`Withdraw ${TW.manager}'s transfers for this window?`)) return;
+    return twSubmit({ manager: TW.manager, withdraw: true }, "/api/transfer",
+                    `Withdrawn for ${TW.manager}.`);
+  }
+  const id = (v) => (v === "OWN" ? v : Number(v));
+  if (b.dataset.out) {
+    const k = id(b.dataset.out), i = TW.out.indexOf(k);
+    if (i >= 0) { TW.out.splice(i, 1); TW.in = TW.in.slice(0, TW.out.length); }
+    else TW.out.push(k);
+  } else if (b.dataset.in) { TW.in.push(id(b.dataset.in)); TW.q = ""; }
+  else if (b.dataset.unin) TW.in = TW.in.filter((x) => String(x) !== b.dataset.unin);
+  else return;
+  TW.msg = null; TW.errs = [];
+  renderWindow();
+  if (b.dataset.in && TW.out.length > TW.in.length) $("tw-q").focus();
+});
+$("tw").addEventListener("change", (e) => {
+  if (e.target.id === "tw-mgr") { TW.manager = e.target.value; twReset(); renderWindow(); }
+});
+$("tw").addEventListener("input", (e) => {
+  if (e.target.id !== "tw-q") return;
+  TW.q = e.target.value;
+  const pos = e.target.selectionStart;
+  renderWindow();
+  const q = $("tw-q"); q.focus(); q.setSelectionRange(pos, pos);
+});
+
 async function load(refresh) {
   const btn = $("refresh"), st = $("status");
   btn.disabled = true;
@@ -936,6 +1132,7 @@ $("theme").addEventListener("click", () => {
 
 readHash();
 load(false);
+loadWindow();
 </script>
 </body>
 </html>

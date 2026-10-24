@@ -38,9 +38,25 @@ if any of it is wrong the tests fail rather than the table quietly lying.
 
 ### Recording a transfer window
 
-Append a new entry to that manager's `squads`; **do not edit the old
-one**, or past gameweeks get rescored with a squad that was not on the
-pitch at the time.
+Use the **Transfer window** card in the app. The organiser opens a window
+for the gameweek the new squads apply from, picks each manager in turn,
+marks up to three scorers out, chooses their replacements, and records
+it. The server checks the rules (at most three swaps, an existing priced
+player, the budget) and turns down anything after that gameweek's deadline.
+Close the window once everyone is in.
+
+The app appends a new entry to that manager's `squads` with the date and
+the players in and out, and writes a copy to `transfers.log.jsonl`.
+Commit both after each window. Before the deadline a manager can change
+their mind: resubmitting replaces that window's entry, and swaps are always
+counted from the squad held going in.
+
+The budget is checked **by difference**: the squad's stated cost, plus
+what comes in, minus what goes out. Picks that are kept are never
+re-priced, so mistakes in the draft price list can't block a window.
+
+If you edit by hand, append; **do not edit an old entry**, or past
+gameweeks get rescored with a squad that was not on the pitch at the time.
 
 ```json
 "squads": [
@@ -91,6 +107,7 @@ way the rest of the code expects.
     fpl.py          cached client for the FPL API (atomic cache writes)
     standings.py    the league table; the only place goals are read
     robot.py        the two optimisers
+    transfers.py    transfer windows: the rules, and the append-only record
     insights.py     club records, value, xG, transfers, availability, facts
     app.py          local web server + the crest/photo cache
     index.html      the whole front end

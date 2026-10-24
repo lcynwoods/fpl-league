@@ -74,12 +74,18 @@ def test_transfer_counterfactual_only_covers_weeks_after_the_window():
 
 
 def test_transfer_rows_name_real_changes():
-    """in/out must be an actual difference between the two squads."""
+    """in/out must be a real difference between CONSECUTIVE squads.
+
+    Each window is judged against the squad held going into it, so with
+    three or more squads the opening line-up is no longer the comparison.
+    """
     league = standings.load_league()
     for r in insights.transfer_hindsight(DATA):
-        squads = league["managers"][r["manager"]]["squads"]
-        was = {p[1] if p != robot.OWN else "Own Goals" for p in squads[0]["picks"]}
-        now = {p[1] if p != robot.OWN else "Own Goals" for p in squads[-1]["picks"]}
+        squads = sorted(league["managers"][r["manager"]]["squads"],
+                        key=lambda s: s["from"])
+        i = next(i for i, s in enumerate(squads) if s["from"] == r["from"])
+        was = {p[1] if p != robot.OWN else "Own Goals" for p in squads[i - 1]["picks"]}
+        now = {p[1] if p != robot.OWN else "Own Goals" for p in squads[i]["picks"]}
         assert set(r["in"]) == now - was, r["manager"]
         assert set(r["out"]) == was - now, r["manager"]
 

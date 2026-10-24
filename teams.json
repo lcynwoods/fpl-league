@@ -7,6 +7,14 @@
   "previous_champion": "Kirk",
   "_previous_champion": "Holder of the title going into this season; shown with a crown beside their name.",
   "first_gameweek": 3,
+  "_windows": "Transfer windows, opened and closed by the organiser in the app. A window names the gameweek its squads apply from; at most one is open at a time, and nothing is accepted once that gameweek's deadline passes.",
+  "windows": [
+    {
+      "from": 6,
+      "status": "closed",
+      "_note": "recorded after the fact; the dates it opened and closed were not kept"
+    }
+  ],
   "points": {
     "win": 3,
     "draw": 1,

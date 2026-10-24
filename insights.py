@@ -115,11 +115,14 @@ def squad_value(data, weeks, ttl=fpl.CACHE_TTL):
 
 
 def transfer_hindsight(data, ttl=fpl.CACHE_TTL):
-    """For each manager who used the window: did the change actually pay?
+    """For each window a manager used: did the change actually pay?
 
-    Scores the weeks since the transfer twice -- once with the squad they
-    moved to, once with the one they left -- and reports the difference in
-    points, which is the only currency the table deals in.
+    Scores the weeks the new squad was held twice -- once with the squad
+    they moved to, once with the one they left -- and reports the
+    difference in points, which is the only currency the table deals in.
+    Each window is judged on its own, against the squad just before it
+    and only until the next one, so a later window can't be credited to
+    an earlier one.
     """
     league = standings.load_league()
     conceded = standings.conceded_by_club(ttl)
@@ -128,34 +131,34 @@ def transfer_hindsight(data, ttl=fpl.CACHE_TTL):
 
     out = []
     for mgr, m in league["managers"].items():
-        if len(m["squads"]) < 2:
-            continue
-        old, new = m["squads"][0], m["squads"][-1]
-        since = [gw for gw in data["played"] if gw >= new["from"]]
-        if not since:
-            continue
-        def run(picks):
-            pts = gs = 0
-            for gw in since:
-                s = sum(own.get(gw, 0) if p == robot.OWN else goals.get(gw, {}).get(p[0], 0)
-                        for p in picks)
-                a = (conceded.get(m["gk_club"], {}).get(gw, 0)
-                     + conceded.get(m["def_club"], {}).get(gw, 0))
-                pts += 3 if s > a else (1 if s == a else 0)
-                gs += s
-            return pts, gs
-        kept_pts, kept_gs = run(old["picks"])
-        got_pts, got_gs = run(new["picks"])
-        was = {tuple(p) if isinstance(p, list) else p for p in old["picks"]}
-        now = {tuple(p) if isinstance(p, list) else p for p in new["picks"]}
-        out.append({
-            "manager": mgr, "from": new["from"], "weeks": since,
-            "in": sorted("Own Goals" if p == robot.OWN else p[1] for p in now - was),
-            "out": sorted("Own Goals" if p == robot.OWN else p[1] for p in was - now),
-            "points": got_pts, "points_if_kept": kept_pts,
-            "goals": got_gs, "goals_if_kept": kept_gs,
-            "swing": got_pts - kept_pts,
-        })
+        squads = sorted(m["squads"], key=lambda s: s["from"])
+        for old, new, nxt in zip(squads, squads[1:], squads[2:] + [None]):
+            since = [gw for gw in data["played"]
+                     if gw >= new["from"] and (nxt is None or gw < nxt["from"])]
+            if not since:
+                continue
+            def run(picks):
+                pts = gs = 0
+                for gw in since:
+                    s = sum(own.get(gw, 0) if p == robot.OWN else goals.get(gw, {}).get(p[0], 0)
+                            for p in picks)
+                    a = (conceded.get(m["gk_club"], {}).get(gw, 0)
+                         + conceded.get(m["def_club"], {}).get(gw, 0))
+                    pts += 3 if s > a else (1 if s == a else 0)
+                    gs += s
+                return pts, gs
+            kept_pts, kept_gs = run(old["picks"])
+            got_pts, got_gs = run(new["picks"])
+            was = {tuple(p) if isinstance(p, list) else p for p in old["picks"]}
+            now = {tuple(p) if isinstance(p, list) else p for p in new["picks"]}
+            out.append({
+                "manager": mgr, "from": new["from"], "weeks": since,
+                "in": sorted("Own Goals" if p == robot.OWN else p[1] for p in now - was),
+                "out": sorted("Own Goals" if p == robot.OWN else p[1] for p in was - now),
+                "points": got_pts, "points_if_kept": kept_pts,
+                "goals": got_gs, "goals_if_kept": kept_gs,
+                "swing": got_pts - kept_pts,
+            })
     out.sort(key=lambda r: -r["swing"])
     return out
 

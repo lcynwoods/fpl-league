@@ -11,13 +11,19 @@ OUT = robot.build()
 DATA = standings.build()
 SETTLED = [gw for gw in OUT["weeks"] if gw not in OUT["provisional"]]
 
+# A gameweek barely under way can have fewer scorers than a squad has places,
+# so the robot has no legal squad to field and returns None for it. That is a
+# real answer, not a failure -- the app skips those weeks, and so do these.
+SOLVED = {gw: p for gw, p in OUT["per_week"].items() if p}
+VALUE_SOLVED = {gw: p for gw, p in OUT["value_per_week"].items() if p}
+
 
 def _human_weeks(gw):
     return [w for m in DATA["managers"] for w in m["weeks"] if w["gameweek"] == gw]
 
 
 def test_robot_fields_a_legal_squad():
-    for gw, pick in OUT["per_week"].items():
+    for gw, pick in SOLVED.items():
         assert len(pick["picks"]) == 7, gw
         assert len(set(pick["picks"])) == 7, "duplicate pick in GW%s" % gw
         assert pick["gk_club"] != pick["def_club"], gw
@@ -26,13 +32,13 @@ def test_robot_fields_a_legal_squad():
 def test_robot_only_uses_clubs_that_actually_played():
     """A club with no fixture yet must not be mistaken for a clean sheet."""
     conceded = standings.conceded_by_club()
-    for gw, pick in OUT["per_week"].items():
+    for gw, pick in SOLVED.items():
         for club in (pick["gk_club"], pick["def_club"]):
             assert gw in conceded.get(club, {}), "%s had no result in GW%d" % (club, gw)
 
 
 def test_no_manager_outscored_the_robot_in_any_week():
-    for gw, pick in OUT["per_week"].items():
+    for gw, pick in SOLVED.items():
         best = max(w["gs"] for w in _human_weeks(gw))
         assert pick["gs"] >= best, "GW%d: a manager scored %d, robot %d" % (gw, best, pick["gs"])
 
@@ -41,7 +47,7 @@ def test_no_manager_beat_the_robot_on_points():
     """The real ceiling. Under a cap the robot may concede more than someone
     else did -- a cheap leaky defence it still beat is a fine trade -- so
     points, not goals against, is what must never be bettered."""
-    for gw, pick in OUT["per_week"].items():
+    for gw, pick in SOLVED.items():
         for w in _human_weeks(gw):
             human = 3 if w["gs"] > w["ga"] else (1 if w["gs"] == w["ga"] else 0)
             assert pick["pts"] >= human, (gw, w)
@@ -91,7 +97,7 @@ def test_budget_cap_is_reported_as_unapplied_until_prices_exist():
 def test_robot_stays_inside_the_budget():
     if not OUT["capped"]:
         return
-    for pick in list(OUT["per_week"].values()) + [OUT["fixed"]]:
+    for pick in list(SOLVED.values()) + [OUT["fixed"]]:
         assert pick["spend"] <= OUT["budget"] + 1e-9, (pick["spend"], OUT["budget"])
 
 
@@ -99,7 +105,7 @@ def test_robot_never_picks_a_player_the_league_never_priced():
     if not OUT["capped"]:
         return
     prices = robot.load_prices()
-    for pick in list(OUT["per_week"].values()) + [OUT["fixed"]]:
+    for pick in list(SOLVED.values()) + [OUT["fixed"]]:
         for p in pick["picks"]:
             assert robot.price_of(p, prices) is not None, p
         for club in (pick["gk_club"], pick["def_club"]):
@@ -111,12 +117,12 @@ def test_the_cap_actually_binds():
     import copy
     prices = robot.load_prices()
     assert prices and prices["budget"] == 70.0
-    spends = [p["spend"] for p in OUT["per_week"].values()]
+    spends = [p["spend"] for p in SOLVED.values()]
     assert max(spends) <= 70.0 and max(spends) > 50.0, spends
 
 
 def test_maximiser_fields_a_legal_squad():
-    for pick in list(OUT["value_per_week"].values()) + [OUT["value_fixed"]]:
+    for pick in list(VALUE_SOLVED.values()) + [OUT["value_fixed"]]:
         if not pick:
             continue
         assert len(pick["picks"]) == 7, pick["picks"]
@@ -127,16 +133,16 @@ def test_maximiser_fields_a_legal_squad():
 
 def test_maximiser_beats_the_thrifty_bot_on_goal_difference():
     """That is its whole job; if it doesn't, the search is wrong."""
-    for gw, thrifty in OUT["per_week"].items():
-        rich = OUT["value_per_week"][gw]
+    for gw, thrifty in SOLVED.items():
+        rich = VALUE_SOLVED.get(gw)
         if rich:
             assert rich["gd"] >= thrifty["gd"], (gw, rich["gd"], thrifty["gd"])
 
 
 def test_thrifty_bot_never_spends_more_than_the_maximiser_for_fewer_points():
     """The two bots answer different questions; points is the thrifty one's."""
-    for gw, thrifty in OUT["per_week"].items():
-        rich = OUT["value_per_week"][gw]
+    for gw, thrifty in SOLVED.items():
+        rich = VALUE_SOLVED.get(gw)
         if rich:
             assert thrifty["pts"] >= rich["pts"], (gw, thrifty["pts"], rich["pts"])
 

@@ -10,7 +10,7 @@ fifteen managers, on points, goals for, goals against and the W/D/L
 record. That is the strongest statement available about whether the rules
 below are right, and `test_standings.py` re-derives it on every run.
 
-75 tests. Five of them (`test_api.py`) need the network.
+94 tests. Five of them (`test_api.py`) need the network.
 
 ## The rules were reverse-engineered, not given
 
@@ -74,6 +74,8 @@ they are for.
 - **The GW3–5 line-ups were nearly lost.** They were recovered from a
   second photograph. There is no other copy. **Record each transfer
   window as it happens** — the date, and the players in *and* out.
+  The Transfer window card in the app does this, and it also appends to
+  `transfers.log.jsonl`. Commit both after each window.
 
 ## Mistakes already made here, so you don't repeat them
 

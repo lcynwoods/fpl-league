@@ -110,6 +110,7 @@ def gameweeks(ttl=CACHE_TTL):
         out[ev["id"]] = {
             "finished": ev["finished"] and ev["data_checked"],
             "current": ev["is_current"],
+            "deadline": ev["deadline_time"],
         }
     return out
 
