@@ -13,6 +13,13 @@
       "from": 6,
       "status": "closed",
       "_note": "recorded after the fact; the dates it opened and closed were not kept"
+    },
+    {
+      "from": 8,
+      "status": "closed",
+      "opened": "2026-10-24T10:27:54+00:00",
+      "_note": "emergency window: Saka (ARS) injured. Opened after the FPL GW8 deadline by league agreement; verified not to rescore the one GW8 fixture already played.",
+      "closed": "2026-10-24T10:27:54+00:00"
     }
   ],
   "points": {
@@ -103,6 +110,51 @@
               "Pau"
             ]
           ]
+        },
+        {
+          "from": 8,
+          "_note": "1 pick(s) changed in the window; recorded in the app",
+          "recorded": "2026-10-24T10:27:54+00:00",
+          "budget": 70.0,
+          "out": [
+            [
+              12,
+              "Saka"
+            ]
+          ],
+          "in": [
+            [
+              165,
+              "João Pedro"
+            ]
+          ],
+          "picks": [
+            [
+              165,
+              "João Pedro"
+            ],
+            [
+              426,
+              "B.Fernandes"
+            ],
+            [
+              552,
+              "Brobbey"
+            ],
+            [
+              124,
+              "Groß"
+            ],
+            "OWN",
+            [
+              230,
+              "Branthwaite"
+            ],
+            [
+              34,
+              "Pau"
+            ]
+          ]
         }
       ]
     },
@@ -153,6 +205,54 @@
             [
               12,
               "Saka"
+            ],
+            [
+              138,
+              "Kostoulas"
+            ],
+            [
+              94,
+              "Schade"
+            ],
+            [
+              68,
+              "Tavernier"
+            ],
+            [
+              124,
+              "Groß"
+            ],
+            [
+              229,
+              "Tarkowski"
+            ],
+            [
+              259,
+              "Diop"
+            ]
+          ]
+        },
+        {
+          "from": 8,
+          "_note": "1 pick(s) changed in the window; recorded in the app",
+          "recorded": "2026-10-24T10:27:54+00:00",
+          "budget": 68.0,
+          "out": [
+            [
+              12,
+              "Saka"
+            ]
+          ],
+          "in": [
+            [
+              79,
+              "Evanilson"
+            ]
+          ],
+          "picks": [
+            [
+              79,
+              "Evanilson"
             ],
             [
               138,
@@ -538,6 +638,51 @@
               "Maatsen"
             ]
           ]
+        },
+        {
+          "from": 8,
+          "_note": "1 pick(s) changed in the window; recorded in the app",
+          "recorded": "2026-10-24T10:27:54+00:00",
+          "budget": 69.5,
+          "out": [
+            [
+              12,
+              "Saka"
+            ]
+          ],
+          "in": [
+            [
+              40,
+              "Rogers"
+            ]
+          ],
+          "picks": [
+            [
+              154,
+              "Palmer"
+            ],
+            [
+              40,
+              "Rogers"
+            ],
+            [
+              399,
+              "Cherki"
+            ],
+            [
+              429,
+              "Rashford"
+            ],
+            "OWN",
+            [
+              464,
+              "Wissa"
+            ],
+            [
+              36,
+              "Maatsen"
+            ]
+          ]
         }
       ]
     },
@@ -588,6 +733,51 @@
             [
               12,
               "Saka"
+            ],
+            [
+              426,
+              "B.Fernandes"
+            ],
+            [
+              453,
+              "Barnes"
+            ],
+            "OWN",
+            [
+              4,
+              "Gabriel"
+            ],
+            [
+              449,
+              "Hall"
+            ],
+            [
+              473,
+              "Aina"
+            ]
+          ]
+        },
+        {
+          "from": 8,
+          "_note": "1 pick(s) changed in the window; recorded in the app",
+          "recorded": "2026-10-24T10:27:54+00:00",
+          "budget": 69.0,
+          "out": [
+            [
+              12,
+              "Saka"
+            ]
+          ],
+          "in": [
+            [
+              399,
+              "Cherki"
+            ]
+          ],
+          "picks": [
+            [
+              399,
+              "Cherki"
             ],
             [
               426,
@@ -732,6 +922,51 @@
             [
               12,
               "Saka"
+            ],
+            [
+              427,
+              "Mbeumo"
+            ],
+            [
+              464,
+              "Wissa"
+            ],
+            "OWN",
+            [
+              605,
+              "Yalcouyé"
+            ],
+            [
+              11,
+              "Mosquera"
+            ]
+          ]
+        },
+        {
+          "from": 8,
+          "_note": "1 pick(s) changed in the window; recorded in the app",
+          "recorded": "2026-10-24T10:27:54+00:00",
+          "budget": 69.0,
+          "out": [
+            [
+              12,
+              "Saka"
+            ]
+          ],
+          "in": [
+            [
+              165,
+              "João Pedro"
+            ]
+          ],
+          "picks": [
+            [
+              411,
+              "Haaland"
+            ],
+            [
+              165,
+              "João Pedro"
             ],
             [
               427,
