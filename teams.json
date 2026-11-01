@@ -20,6 +20,13 @@
       "opened": "2026-10-24T10:27:54+00:00",
       "_note": "emergency window: Saka (ARS) injured. Opened after the FPL GW8 deadline by league agreement; verified not to rescore the one GW8 fixture already played.",
       "closed": "2026-10-24T10:27:54+00:00"
+    },
+    {
+      "from": 9,
+      "status": "closed",
+      "opened": "2026-11-01T21:57:58+00:00",
+      "_note": "retroactive window, by league decision. Opened after the GW9 deadline with 9 of 10 fixtures played, so it DOES rescore GW9: Danny goes 0-2 L to 2-2 D. The 70m cap was also overridden (70.5m under the difference rule; 69.0m if the squad is priced absolutely -- Danny is the -1.5m draft-list case in the handover).",
+      "closed": "2026-11-01T21:57:58+00:00"
     }
   ],
   "points": {
@@ -346,6 +353,48 @@
               403,
               "Sávio"
             ],
+            [
+              4,
+              "Gabriel"
+            ],
+            [
+              391,
+              "Gvardiol"
+            ]
+          ]
+        },
+        {
+          "from": 9,
+          "_note": "retroactive: recorded 2026-11-01, after GW9 had begun. Over the 70m cap by 0.5m, allowed by league decision.",
+          "recorded": "2026-11-01T21:57:58+00:00",
+          "budget": 70.5,
+          "out": [
+            [
+              403,
+              "Sávio"
+            ]
+          ],
+          "in": [
+            "OWN"
+          ],
+          "picks": [
+            [
+              379,
+              "Isak"
+            ],
+            [
+              165,
+              "João Pedro"
+            ],
+            [
+              426,
+              "B.Fernandes"
+            ],
+            [
+              464,
+              "Wissa"
+            ],
+            "OWN",
             [
               4,
               "Gabriel"

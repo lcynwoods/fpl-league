@@ -248,21 +248,37 @@ def test_recording_a_window_does_not_rescore_any_played_week():
 
 
 def test_hindsight_judges_each_window_on_its_own():
-    """With a second window, the first is scored only until the second."""
+    """Each window is scored from its own start until the next one begins.
+
+    This asserts the span rule rather than a fixed set of gameweeks: the
+    managers accumulate windows as the season runs, and an earlier version
+    of this test broke the moment Kirk had a second one.
+    """
     import insights
     league = standings.load_league()
     data = standings.build()
     m = league["managers"]["Kirk"]
     last = max(data["played"])
-    # a second "window" at the last played week, re-using the opening squad
+    assert last not in {s["from"] for s in m["squads"]}, \
+        "this test needs a gameweek Kirk has no squad from"
+    # one more window, re-using the opening squad, so there are three or more
     m["squads"].append({"from": last, "picks": m["squads"][0]["picks"]})
+    starts = sorted(s["from"] for s in m["squads"])
+    assert len(starts) >= 3, starts
+
     real = standings.load_league
     standings.load_league = lambda path=None: league
     try:
         rows = [r for r in insights.transfer_hindsight(data) if r["manager"] == "Kirk"]
     finally:
         standings.load_league = real
+
     by_from = {r["from"]: r for r in rows}
-    assert set(by_from) == {6, last}
-    assert by_from[6]["weeks"] == [gw for gw in data["played"] if 6 <= gw < last]
+    for i, gw in enumerate(starts[1:], 1):   # every window after the opening squad
+        nxt = starts[i + 1] if i + 1 < len(starts) else None
+        span = [g for g in data["played"] if g >= gw and (nxt is None or g < nxt)]
+        if not span:
+            assert gw not in by_from, gw
+            continue
+        assert by_from[gw]["weeks"] == span, (gw, by_from[gw]["weeks"], span)
     assert by_from[last]["weeks"] == [last]

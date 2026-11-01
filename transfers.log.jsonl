@@ -3,3 +3,4 @@
 {"event": "transfer", "manager": "James", "window": 8, "out": [[12, "Saka"]], "in": [[40, "Rogers"]], "at": "2026-10-24T10:27:54+00:00", "note": "emergency: Saka injured; recorded after the FPL deadline"}
 {"event": "transfer", "manager": "Jason", "window": 8, "out": [[12, "Saka"]], "in": [[399, "Cherki"]], "at": "2026-10-24T10:27:54+00:00", "note": "emergency: Saka injured; recorded after the FPL deadline"}
 {"event": "transfer", "manager": "Juha", "window": 8, "out": [[12, "Saka"]], "in": [[165, "João Pedro"]], "at": "2026-10-24T10:27:54+00:00", "note": "emergency: Saka injured; recorded after the FPL deadline"}
+{"event": "transfer", "manager": "Danny", "window": 9, "out": [[403, "Sávio"]], "in": ["OWN"], "budget": 70.5, "at": "2026-11-01T21:57:58+00:00", "note": "retroactive after the GW9 deadline, 9 of 10 fixtures played; rescores GW9 (Danny 0-2 L -> 2-2 D). Over the 70m cap by 0.5m. Both overrides by league decision."}
