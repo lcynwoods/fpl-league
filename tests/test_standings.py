@@ -5,7 +5,6 @@ spreadsheet, so the important tests are the ones that re-derive it: if an
 upstream change or a bad edit breaks the model, these fail rather than
 quietly producing a plausible-looking wrong table.
 """
-import json
 
 import fpl
 import standings

@@ -3,7 +3,6 @@
 These are decoration, not the table, so the bar is that nothing here can
 state something the standings contradict.
 """
-import fpl
 import insights
 import robot
 import standings

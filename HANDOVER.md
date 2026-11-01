@@ -8,9 +8,11 @@ that will bite you. Written October 2026, during gameweek 7 of Season 3.
 The app reproduces the league's published GW3–6 table **exactly** — all
 fifteen managers, on points, goals for, goals against and the W/D/L
 record. That is the strongest statement available about whether the rules
-below are right, and `test_standings.py` re-derives it on every run.
+below are right, and `tests/test_standings.py` re-derives it on every run.
 
-94 tests. Five of them (`test_api.py`) need the network.
+94 tests, in `tests/`. Five of them (`tests/test_api.py`) need the
+network, so `python3 tests/run.py` leaves them out unless you pass
+`--api`.
 
 ## The rules were reverse-engineered, not given
 
@@ -45,6 +47,20 @@ they are for.
    likeliest explanation is that prices were revised after that draft.
    **A final price list would close this**, and the check is the same
    trick as before: if all 15 squads reconcile, the list is right.
+
+   **This has now cost us twice, and both are recorded rather than
+   fixed — revisit them when a final list arrives:**
+
+   - **James, GW8.** Saka (£9.0m) out, Rogers (£8.5m) in, so the swap
+     comes to £69.5m where the league's own sheet still says £70m. If
+     the final list has Rogers at £9.0m the sheet is right and
+     `prices.json` is wrong.
+   - **Danny, GW9.** Sávio (£3.5m) out, Own Goals (£5.0m) in. By the
+     difference rule that is £70.5m, £0.5m over the cap, and it was
+     allowed through by league decision. Priced absolutely his squad
+     comes to £69.0m, comfortably legal — the gap is exactly the −1.5
+     above. Whether that transfer was ever over the cap depends on which
+     number is right.
 3. **One price is a guess.** Tyler Dibling is absent from the list and
    cannot be solved from the squads (the algebra wants a negative), so he
    uses FPL's own valuation. `prices.json` records this as
@@ -68,6 +84,14 @@ they are for.
   applies from its `from` gameweek. Editing an old entry silently
   rescores past weeks against a squad that was never fielded, and the
   table will look plausible while being wrong.
+- **GW9 is not settled, and Danny/Callum may swap back.** Newcastle v
+  Everton was still unplayed as of 2 Nov 2026. Danny's Wissa is
+  Newcastle and the GW9 own-goals total (2 at the time of writing) can
+  still rise, both of which move his GS. He is 13th only on goals
+  scored, level on points with Callum at 14th, so that order can flip
+  on the strength of one fixture. **Re-check the table once GW9
+  finishes** — nothing needs editing, the table just recomputes.
+
 - **Season rollover will invalidate player ids.** `teams.json` and
   `prices.json` key on FPL element ids, which change between seasons.
   A new season needs both rebuilt, and `first_gameweek` reset.
@@ -102,10 +126,14 @@ they are for.
 ## Where things live
 
 `standings.py` is the table and the only place goals are read.
-`robot.py` holds the two optimisers, `insights.py` everything decorative
+`robot.py` holds the two optimisers, `transfers.py` the transfer-window
+rules and the append-only record, `insights.py` everything decorative
 but factual, `app.py` the server and asset cache, `index.html` the whole
 front end. `tools/check_palette.py` re-checks manager colours for
 colour-blind separation after you edit `palette.json`.
+
+The tests are in `tests/`; `python3 tests/run.py` runs them without
+pytest, which matters because the app itself needs nothing installed.
 
 `README.md` covers running it and the data formats.
 

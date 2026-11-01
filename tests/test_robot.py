@@ -114,7 +114,6 @@ def test_robot_never_picks_a_player_the_league_never_priced():
 
 def test_the_cap_actually_binds():
     """With the cap on, the robot must do no better than without it."""
-    import copy
     prices = robot.load_prices()
     assert prices and prices["budget"] == 70.0
     spends = [p["spend"] for p in SOLVED.values()]
@@ -149,7 +148,6 @@ def test_thrifty_bot_never_spends_more_than_the_maximiser_for_fewer_points():
 
 def test_every_derived_price_keeps_its_squad_exact():
     """Prices solved from a squad must make that squad's budget come out right."""
-    import json
     prices = robot.load_prices()
     league = standings.load_league()
     derived = {int(k) for k, v in prices.get("price_source", {}).items() if v == "derived"}

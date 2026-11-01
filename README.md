@@ -24,7 +24,7 @@ other and scores every own goal in the league that week. The season
 starts at gameweek 3.
 
 These rules were reverse-engineered from the league's own spreadsheet and
-then verified against the API — `test_standings.py` re-derives them, so
+then verified against the API — `tests/test_standings.py` re-derives them, so
 if any of it is wrong the tests fail rather than the table quietly lying.
 
 ## The data files
@@ -89,18 +89,17 @@ day FPL catches up, so the entry gets removed instead of double-counting.
 
 ## Tests
 
-    python3 -m pytest -q                 # if pytest is installed
-    python3 -c "$(cat <<'PY'
-    import importlib
-    for mod in ("test_scoring","test_standings","test_robot","test_insights","test_assets"):
-        m = importlib.import_module(mod)
-        for n in sorted(x for x in dir(m) if x.startswith("test_")):
-            getattr(m, n)(); print("ok", mod + "." + n)
-    PY
-    )"
+The tests live in `tests/`, and the code they exercise sits at the repo
+root; `tests/conftest.py` puts the root on `sys.path` so either runner
+works from anywhere.
 
-`test_api.py` needs the network and checks the live API still looks the
-way the rest of the code expects.
+    python3 tests/run.py             # no pytest needed
+    python3 tests/run.py --api       # include the network tests
+    python3 -m pytest -q             # if pytest is installed
+
+`tests/test_api.py` needs the network and checks the live API still looks
+the way the rest of the code expects, so `tests/run.py` leaves it out
+unless you ask for it.
 
 ## Layout
 
@@ -111,4 +110,5 @@ way the rest of the code expects.
     insights.py     club records, value, xG, transfers, availability, facts
     app.py          local web server + the crest/photo cache
     index.html      the whole front end
+    tests/          the test suite; run.py runs it without pytest
     league.py       older CLI for per-player custom scoring (uses rules.json)

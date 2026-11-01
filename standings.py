@@ -14,7 +14,6 @@ confirmed it.
 """
 import json
 import os
-from concurrent.futures import ThreadPoolExecutor
 
 import fpl
 
