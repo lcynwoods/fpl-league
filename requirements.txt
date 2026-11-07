@@ -1,8 +1,11 @@
-# Runtime dependencies: none.
+# Runtime dependencies: scipy, for the robot manager only.
 #
 # The FPL API serves plain JSON over HTTPS, so the client in fpl.py uses
 # urllib + json from the standard library. No requests, no BeautifulSoup --
-# there is no HTML to parse. Nothing here is needed to run the app.
+# there is no HTML to parse. scipy's milp solves the robot's best season
+# squad in well under a second; without it robot.py falls back to an exact
+# pure-Python search that slows down about 3x with every gameweek.
+scipy>=1.9
 
 # Development only.
 pytest>=8.0

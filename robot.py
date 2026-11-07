@@ -11,16 +11,24 @@ is a ceiling, not a rival. Two questions it answers:
 Budget: prices come from prices.json (the league's own list). Without that
 file the robot picks freely and says so.
 
-One honest limit: the search maximises POINTS, which it does exactly. To
-keep it quick it then records the cheapest squad that achieves those
-points, not the highest-scoring one -- so the goals and goal difference it
-reports are a lower bound on what that points total could have looked
-like. Points are what the table is ranked on, so that is the number to
-trust.
+The best season squad is a small integer programme, and with scipy
+installed it is solved as one: exact on points, then goal difference, then
+goals, then the cheapest squad that gets all three, and quick for a whole
+season. Without scipy it falls back to a pure-Python search that is just as
+exact on POINTS but slows down about 3x with every gameweek, and which
+records the cheapest squad reaching those points rather than the
+highest-scoring one -- so there the goals and goal difference it reports
+are a lower bound. Points are what the table is ranked on either way.
 """
 import json
 import os
 from itertools import combinations
+
+try:
+    import numpy as np
+    from scipy.optimize import Bounds, LinearConstraint, milp
+except ImportError:  # the pure-Python search below still gives exact points
+    milp = None
 
 import fpl
 import standings
@@ -115,17 +123,185 @@ def _candidates(goals, own, weeks, prices):
     return out
 
 
+def _reach(cands):
+    """reach[i][w][j]: the most goals j picks from cands[i:] can add in week w.
+
+    An optimistic ceiling -- each week may use different picks -- which is
+    what lets the search drop a squad that cannot catch the best so far.
+    """
+    weeks = len(cands[0][1]) if cands else 0
+    top = [[] for _ in range(weeks)]
+    reach = [None] * (len(cands) + 1)
+    reach[len(cands)] = [[0] * 8 for _ in range(weeks)]
+    for i in range(len(cands) - 1, -1, -1):
+        for w in range(weeks):
+            top[w] = sorted(top[w] + [cands[i][1][w]], reverse=True)[:7]
+        reach[i] = [[sum(t[:j]) for j in range(8)] for t in top]
+    return reach
+
+
+def _cheapest_squads(cands, reach, ga, budget=None, floor=0):
+    """Capped goals -> (cheapest seven picks reaching them, those picks).
+
+    Tracking the CHEAPEST squad per state is what makes the budget
+    correct: keeping the highest-scoring one instead would throw away an
+    affordable squad in favour of one that cannot be bought.
+
+    Each candidate is considered once, in turn -- the same shape as
+    best_value -- so a squad is built in one order only, not in every
+    order its seven picks could be drawn. And a part-built squad that
+    could not reach `floor` points even with the best of what is left in
+    every week is dropped: it can never be the answer.
+    """
+    caps = tuple(g + 1 for g in ga)
+    weeks = range(len(ga))
+
+    def hopeless(state, left, more):
+        pts = 0
+        for w in weeks:
+            best = state[w] + left[w][more]
+            pts += 3 if best > ga[w] else (1 if best == ga[w] else 0)
+        return pts < floor
+
+    # dp[slots][capped goals] = (spend, picks)
+    dp = [{} for _ in range(8)]
+    dp[0][tuple(0 for _ in caps)] = (0.0, ())
+    for i, (pid, vec, price) in enumerate(cands):
+        # What is left only shrinks, so a squad that cannot catch up now
+        # never will: drop it for good rather than extend it again.
+        if floor:
+            for k in range(7):
+                dp[k] = {s: v for s, v in dp[k].items()
+                         if not hopeless(s, reach[i], 7 - k)}
+        left = reach[i + 1]
+        # Fill from the top down so this candidate is used at most once.
+        for k in range(6, -1, -1):
+            nxt = dp[k + 1]
+            more = 6 - k
+            for state, (spend, picks) in dp[k].items():
+                cost = spend + price
+                if budget is not None and cost > budget:
+                    continue
+                ns = tuple(min(s + v, c) for s, v, c in zip(state, vec, caps))
+                if floor and hopeless(ns, left, more):
+                    continue
+                cur = nxt.get(ns)
+                if cur is None or cost < cur[0]:
+                    nxt[ns] = (cost, picks + (pid,))
+    return dp[7]
+
+
 def best_fixed(weeks, goals, own, conceded, clubs, prices=None, budget=None):
-    """The best single squad to have held across `weeks`.
+    """The best single squad to have held across `weeks`."""
+    solve = _solve_fixed if milp is not None else _search_fixed
+    return solve(weeks, goals, own, conceded, clubs, prices, budget)
+
+
+def _solve_fixed(weeks, goals, own, conceded, clubs, prices=None, budget=None):
+    """best_fixed as an integer programme, for scipy's milp.
+
+    One 0/1 switch per pick and per club (seven picks, two clubs), and per
+    week a "drew at least" and a "won" switch. Each week's margin -- goals
+    from the picks less goals the two clubs let in -- must be at least 0
+    for the first and at least 1 for the second, unless that switch is off.
+    It is solved four times, each time holding the last answer as a floor:
+    most points, then best goal difference, then most goals, then the
+    cheapest squad that still has all three.
+    """
+    cands = _candidates(goals, own, weeks, prices)
+    if prices:
+        clubs = [c for c in clubs if c in prices["clubs"]]
+    if len(cands) < 7 or len(clubs) < 2:
+        return None
+    n_p, n_c, n_w = len(cands), len(clubs), len(weeks)
+
+    scored = np.array([vec for _, vec in cands], dtype=float).T          # weeks x picks
+    let_in = np.array([[conceded.get(c, {}).get(w, 0) for c in clubs]
+                       for w in weeks], dtype=float)                     # weeks x clubs
+    cost = np.array([price_of(p, prices) if prices else 0 for p, _ in cands]
+                    + [prices["clubs"][c] if prices else 0 for c in clubs], dtype=float)
+
+    # Columns: picks | clubs | drew-at-least per week | won per week.
+    n = n_p + n_c + 2 * n_w
+    picks, club_cols = slice(0, n_p), slice(n_p, n_p + n_c)
+    drew, won = slice(n_p + n_c, n_p + n_c + n_w), slice(n_p + n_c + n_w, n)
+
+    def row(**parts):
+        r = np.zeros(n)
+        for part, values in parts.items():
+            r[{"picks": picks, "clubs": club_cols, "drew": drew, "won": won}[part]] = values
+        return r
+
+    rows, lo, hi = [row(picks=1), row(clubs=1)], [7, 2], [7, 2]
+    if budget is not None:
+        rows.append(np.concatenate([cost, np.zeros(2 * n_w)]))
+        lo.append(-np.inf)
+        hi.append(budget)
+    for w in range(n_w):
+        # Big enough to switch the week off: no pair lets in more than this.
+        big = 2 * let_in[w].max() + 1
+        margin = row(picks=scored[w], clubs=-let_in[w])
+        drew_w = margin.copy()
+        drew_w[drew.start + w] = -big
+        won_w = margin.copy()
+        won_w[won.start + w] = -big
+        rows += [drew_w, won_w]
+        lo += [-big, 1 - big]
+        hi += [np.inf, np.inf]
+
+    goals_for = row(picks=scored.sum(axis=0))
+    goal_diff = row(picks=scored.sum(axis=0), clubs=-let_in.sum(axis=0))
+    stages = [row(drew=1, won=2), goal_diff, goals_for]
+
+    x = None
+    for i, aim in enumerate(stages + [-np.concatenate([cost, np.zeros(2 * n_w)])]):
+        res = milp(-aim, integrality=np.ones(n), bounds=Bounds(0, 1),
+                   constraints=LinearConstraint(np.array(rows), lo, hi))
+        if res.x is None:
+            if x is None:
+                return None  # no squad fits at all
+            break
+        x = np.round(res.x)
+        if i < len(stages):
+            # Hold this stage at its best before optimising the next one.
+            rows.append(aim)
+            lo.append(aim @ x - 0.5)
+            hi.append(np.inf)
+    return _describe_fixed(x, cands, clubs, weeks, scored, let_in, cost)
+
+
+def _describe_fixed(x, cands, clubs, weeks, scored, let_in, cost):
+    n_p, n_c = len(cands), len(clubs)
+    chosen = x[:n_p] > 0.5
+    pair = x[n_p:n_p + n_c] > 0.5
+    gk, df = sorted(c for c, on in zip(clubs, pair) if on)
+    weekly = [int(v) for v in scored[:, chosen].sum(axis=1)]
+    ga = [int(v) for v in let_in[:, pair].sum(axis=1)]
+    return {"gk_club": gk, "def_club": df,
+            "picks": [p for (p, _), on in zip(cands, chosen) if on],
+            "ga": ga, "pts": sum(3 if s > g else (1 if s == g else 0)
+                                 for s, g in zip(weekly, ga)),
+            "gs": sum(weekly), "gd": sum(weekly) - sum(ga),
+            "spend": round(float(cost[:n_p + n_c] @ x[:n_p + n_c]), 1),
+            "weekly_gs": weekly}
+
+
+def _search_fixed(weeks, goals, own, conceded, clubs, prices=None, budget=None):
+    """best_fixed in pure Python, for when scipy is not installed.
 
     Points are won week by week, so goals beyond what a week needed are
     worth nothing -- capping each week at one more than its goals-against
     keeps the search space small without changing any result.
     """
-    cands = _candidates(goals, own, weeks, prices)
-    best = None
+    # Big scorers first, so the ceiling on what is left falls quickly.
+    cands = sorted(((pid, vec, price_of(pid, prices) if prices else 0)
+                    for pid, vec in _candidates(goals, own, weeks, prices)),
+                   key=lambda c: -sum(c[1]))
+    vectors = {pid: vec for pid, vec, _ in cands}
+    reach = _reach(cands)
 
-    for (gk, df), ga in _club_pairs(conceded, weeks, clubs, prices):
+    pairs = []
+    for order, ((gk, df), ga) in enumerate(_club_pairs(conceded, weeks, clubs, prices)):
         base = 0.0
         if prices:
             if gk not in prices["clubs"] or df not in prices["clubs"]:
@@ -133,36 +309,21 @@ def best_fixed(weeks, goals, own, conceded, clubs, prices=None, budget=None):
             base = prices["clubs"][gk] + prices["clubs"][df]
             if budget is not None and base > budget:
                 continue
+        pairs.append((order, gk, df, ga, base))
 
-        caps = tuple(g + 1 for g in ga)
-        start = tuple(0 for _ in weeks)
-        # dp[slots][capped goals] = (cheapest way to reach it, those picks).
-        # Tracking the CHEAPEST squad per state is what makes the budget
-        # correct: keeping the highest-scoring one instead would throw away
-        # an affordable squad in favour of one that cannot be bought.
-        dp = {0: {start: (base, ())}}
-        for k in range(7):
-            nxt = {}
-            for state, (spend, picks) in dp[k].items():
-                for pid, vec in cands:
-                    if pid in picks:
-                        continue
-                    cost = spend + (price_of(pid, prices) if prices else 0)
-                    if budget is not None and cost > budget:
-                        continue
-                    ns = tuple(min(s + v, c) for s, v, c in zip(state, vec, caps))
-                    cur = nxt.get(ns)
-                    if cur is None or cost < cur[0]:
-                        nxt[ns] = (cost, picks + (pid,))
-            dp[k + 1] = nxt
-
-        for state, (spend, picks) in dp[7].items():
-            if budget is not None and spend > budget:
-                continue
+    # The tightest defences are searched first: they set a high points
+    # floor early, and every later pair is searched only for squads that
+    # can at least match it. Ties still go to the pair listed first.
+    pairs.sort(key=lambda p: sum(p[3]))
+    best = None
+    for order, gk, df, ga, base in pairs:
+        floor = best[0][0] if best else 0
+        left = None if budget is None else budget - base
+        for state, (spend, picks) in _cheapest_squads(cands, reach, ga, left, floor).items():
+            spend += base
             pts = sum(3 if s > g else (1 if s == g else 0) for s, g in zip(state, ga))
-            gs = [sum(goals.get(w, {}).get(p, 0) if p != OWN else own.get(w, 0)
-                      for p in picks) for w in weeks]
-            score = (pts, sum(gs) - sum(ga), sum(gs), -spend)
+            gs = [sum(vectors[p][i] for p in picks) for i in range(len(weeks))]
+            score = (pts, sum(gs) - sum(ga), sum(gs), -spend, -order)
             if best is None or score > best[0]:
                 best = (score, {"gk_club": gk, "def_club": df, "picks": list(picks),
                                 "ga": list(ga), "pts": pts, "gs": sum(gs),

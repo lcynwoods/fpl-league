@@ -4,10 +4,16 @@ A league table for the 7 Stars league, computed from the public Fantasy
 Premier League API. Nothing is typed in by hand: squads and prices are
 data files, everything else is derived from match results.
 
+    conda env create -f environment.yml    # once
+    conda activate fpl-league
     python3 app.py          # then open http://127.0.0.1:8000
 
-No runtime dependencies — the standard library only. `pytest` is used for
-the tests but they also run without it (see below).
+One runtime dependency: scipy, which the robot manager uses to solve its
+best season squad in under a second. Everything else is the standard
+library, and without scipy the app still runs -- the robot falls back to a
+pure-Python search that gives the same points but slows down about 3x with
+every gameweek. `pytest` is used for the tests but they also run without it
+(see below).
 
 ## How the league scores
 

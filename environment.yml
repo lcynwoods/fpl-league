@@ -4,5 +4,6 @@ channels:
   - conda-forge
 dependencies:
   - python>=3.11
-  # No runtime dependencies -- fpl.py uses stdlib urllib/json only.
+  # fpl.py uses stdlib urllib/json only; scipy is for the robot's solver.
+  - scipy>=1.9
   - pytest>=8.0   # development only
