@@ -157,7 +157,8 @@ def test_every_derived_price_keeps_its_squad_exact():
             ids = {p[0] for p in sq["picks"] if p != robot.OWN}
             if not ids & derived:
                 continue
-            cost = prices["clubs"][m["gk_club"]] + prices["clubs"][m["def_club"]]
+            gk_club, def_club = standings.clubs_at(m, sq["from"])
+            cost = prices["clubs"][gk_club] + prices["clubs"][def_club]
             cost += sum(prices["own_goals"] if p == robot.OWN
                         else prices["players"][p[0]] for p in sq["picks"])
             stated = sq.get("budget", m["budget"])

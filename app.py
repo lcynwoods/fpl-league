@@ -205,8 +205,10 @@ class Handler(BaseHTTPRequestHandler):
                 for name, m in league["managers"].items():
                     base = transfers.base_squad(m, window)
                     entry = next((s for s in m["squads"] if s["from"] == window["from"]), None)
+                    # the clubs going into the window, not the original pair
+                    gk_club, def_club = standings.clubs_at(m, window["from"] - 1)
                     managers.append({
-                        "manager": name, "gk_club": m["gk_club"], "def_club": m["def_club"],
+                        "manager": name, "gk_club": gk_club, "def_club": def_club,
                         "budget": base.get("budget", m["budget"]) if base else None,
                         "squad": [describe(p) for p in base["picks"]] if base else [],
                         "entry": entry and {

@@ -82,13 +82,30 @@ def test_every_squad_has_seven_scorers():
 
 
 def test_transfers_change_at_most_three_outfield_picks():
-    """A window moves up to three players -- never the GK or DEF club."""
-    for manager, m in standings.load_league()["managers"].items():
+    """A window moves up to three players -- never the GK or DEF club.
+
+    A window the league has explicitly waived is skipped. GW10 changed six
+    clubs and more than three picks by agreement, and the waiver is
+    recorded on the window itself, so this guard still holds for every
+    other window rather than being deleted outright.
+    """
+    league = standings.load_league()
+    waived = {w["from"] for w in league.get("windows", []) if w.get("rules_waived")}
+    for w in league.get("windows", []):
+        if w.get("rules_waived"):
+            assert w.get("_note"), "a waived window must record why: GW%d" % w["from"]
+    for manager, m in league["managers"].items():
         assert len(m["squads"][0].get("transferred_in", [])) <= 3, manager
-        for before, after in zip(m["squads"], m["squads"][1:]):
+        squads = sorted(m["squads"], key=lambda s: s["from"])
+        for before, after in zip(squads, squads[1:]):
+            if after["from"] in waived:
+                continue
             was = {tuple(p) if isinstance(p, list) else p for p in before["picks"]}
             now = {tuple(p) if isinstance(p, list) else p for p in after["picks"]}
             assert len(now - was) <= 3, "%s changed %d picks" % (manager, len(now - was))
+            assert "gk_club" not in after and "def_club" not in after, (
+                "%s changed a club in GW%d, which is not a waived window"
+                % (manager, after["from"]))
 
 
 def test_every_squad_player_exists():
@@ -239,3 +256,67 @@ def test_live_goals_agree_with_the_per_player_histories_when_settled():
             if (gw, pid) in adjusted:
                 continue
             assert per.get(gw, 0) == live[gw].get(pid, 0), (pid, gw)
+
+
+def _fake_manager(**squad_extra):
+    """A manager with one opening squad, for exercising the club history."""
+    squad = {"from": 3, "picks": ["OWN"] * 7}
+    squad.update(squad_extra)
+    return {"gk_club": "Everton", "def_club": "Leeds", "budget": 70.0,
+            "squads": [squad]}
+
+
+def test_a_club_change_applies_only_from_its_own_gameweek():
+    """Clubs are history too: a squad entry may override them from its week.
+
+    The clubs were fixed for the season at first, so they live on the
+    manager. Once one changes, the earlier weeks must keep the club that
+    was actually fielded -- editing the manager-level pair instead
+    rewrites every gameweek played so far, which looks plausible and is
+    wrong.
+    """
+    m = _fake_manager()
+    assert standings.clubs_at(m, 3) == ("Everton", "Leeds")
+    assert standings.clubs_at(m, 99) == ("Everton", "Leeds")
+
+    m["squads"].append({"from": 10, "picks": ["OWN"] * 7, "gk_club": "Brighton"})
+    assert standings.clubs_at(m, 9) == ("Everton", "Leeds"), "an earlier week moved"
+    assert standings.clubs_at(m, 10) == ("Brighton", "Leeds")
+    assert standings.current_clubs(m) == ("Brighton", "Leeds")
+    assert m["gk_club"] == "Everton", "the manager-level club must not be edited"
+
+
+def test_a_club_change_is_inherited_by_later_squads():
+    """A later window that changes only picks keeps the clubs already set."""
+    m = _fake_manager()
+    m["squads"].append({"from": 10, "picks": ["OWN"] * 7, "gk_club": "Brighton"})
+    m["squads"].append({"from": 11, "picks": ["OWN"] * 7})          # picks only
+    m["squads"].append({"from": 12, "picks": ["OWN"] * 7, "def_club": "Arsenal"})
+    assert standings.clubs_at(m, 10) == ("Brighton", "Leeds")
+    assert standings.clubs_at(m, 11) == ("Brighton", "Leeds"), \
+        "the GK club was dropped by a later picks-only window"
+    assert standings.clubs_at(m, 12) == ("Brighton", "Arsenal")
+    assert standings.current_clubs(m) == ("Brighton", "Arsenal")
+
+
+def test_club_history_does_not_rescore_played_weeks():
+    """Adding a club override for a future week leaves the table alone."""
+    data = standings.build()
+    before = {(mg["manager"], w["gameweek"]): (w["gs"], w["ga"], w["result"])
+              for mg in data["managers"] for w in mg["weeks"]}
+    league = standings.load_league()
+    nxt = max(data["played"]) + 1
+    for m in league["managers"].values():
+        m["squads"].append({"from": nxt, "picks": m["squads"][-1]["picks"],
+                            "gk_club": "Brighton", "def_club": "Arsenal"})
+    real = standings.load_league
+    standings.load_league = lambda path=None: league
+    try:
+        after = standings.build()
+    finally:
+        standings.load_league = real
+    moved = {k: (before[k], v) for k, v in
+             {(mg["manager"], w["gameweek"]): (w["gs"], w["ga"], w["result"])
+              for mg in after["managers"] for w in mg["weeks"]}.items()
+             if k in before and before[k] != v}
+    assert not moved, moved

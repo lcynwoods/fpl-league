@@ -433,7 +433,8 @@
   "268": 5.0,
   "138": 7.5,
   "649": 2.0,
-  "637": 2.0
+  "637": 2.0,
+  "166": 8.0
  },
  "price_source": {
   "4": "pdf",
@@ -845,7 +846,8 @@
   "268": "derived",
   "138": "derived",
   "649": "derived",
-  "637": "derived"
+  "637": "derived",
+  "166": "derived"
  },
  "_source_note": "pdf = the league's own list; derived = solved from a squad whose other picks are all priced; fpl = taken from FPL's own valuation because nothing pinned it down."
 }

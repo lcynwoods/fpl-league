@@ -88,6 +88,37 @@ def _squad_at(squads, gameweek):
     return max(live, key=lambda s: s["from"]) if live else None
 
 
+def clubs_at(manager, gameweek):
+    """The (GK club, DEF club) in force that gameweek.
+
+    The clubs were fixed for the whole season to begin with, so they live on
+    the manager. A squad entry may carry its own "gk_club"/"def_club" and
+    override them from its `from` gameweek onwards -- kept as history for the
+    same reason the picks are, so re-running an old gameweek uses the clubs
+    that were actually fielded.
+
+    This means the manager-level pair is the ORIGINAL one and must be left
+    alone. Editing it rescores every gameweek, which is how a club change
+    silently rewrites a season.
+
+    Each club is carried forward independently from the most recent entry
+    that names it, so a later window that changes only the picks keeps the
+    clubs set by an earlier one.
+    """
+    live = sorted((s for s in manager["squads"] if s["from"] <= gameweek),
+                  key=lambda s: s["from"], reverse=True)
+    out = []
+    for role in ("gk_club", "def_club"):
+        out.append(next((s[role] for s in live if role in s), manager[role]))
+    return tuple(out)
+
+
+def current_clubs(manager):
+    """The clubs in force now -- the latest squad entry's, or the original."""
+    latest = max((s["from"] for s in manager["squads"]), default=0)
+    return clubs_at(manager, latest)
+
+
 def goals_by_gameweek(weeks, adjustments=(), ttl=fpl.CACHE_TTL):
     """{gameweek: {player id: goals}} for the whole league.
 
@@ -159,8 +190,9 @@ def build(ttl=fpl.CACHE_TTL):
             gs = sum(own.get(gw, 0) if pick == OWN_GOALS
                      else goals.get(pick[0], {}).get(gw, 0)
                      for pick in squad["picks"])
-            ga = (conceded.get(m["gk_club"], {}).get(gw, 0)
-                  + conceded.get(m["def_club"], {}).get(gw, 0))
+            gk_club, def_club = clubs_at(m, gw)
+            ga = (conceded.get(gk_club, {}).get(gw, 0)
+                  + conceded.get(def_club, {}).get(gw, 0))
             weeks.append({
                 "gameweek": gw,
                 "gs": gs,
@@ -174,10 +206,11 @@ def build(ttl=fpl.CACHE_TTL):
                     for pick in squad["picks"]
                 ],
             })
+        now_gk, now_def = current_clubs(m)
         managers.append({
             "manager": name,
-            "gk_club": m["gk_club"],
-            "def_club": m["def_club"],
+            "gk_club": now_gk,
+            "def_club": now_def,
             "budget": m["budget"],
             "weeks": weeks,
             "unscorable": unscorable,

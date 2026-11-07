@@ -12,12 +12,23 @@ WEEKS = DATA["played"]
 
 
 def test_club_conceded_matches_the_standings():
-    """A club's record here must agree with what it costs its owners."""
+    """A club's record here must agree with the GA in the table.
+
+    Clubs are history now, so a manager's GA is the sum of whichever pair
+    was in force each week rather than one club's season total.
+    """
     clubs = insights.club_stats(WEEKS)
+    conceded = standings.conceded_by_club()
+    league = standings.load_league()
+    for club, c in clubs.items():
+        assert c["conceded"] == sum(v for gw, v in conceded[club].items()
+                                    if gw in WEEKS), club
     for m in DATA["managers"]:
-        gk, df = clubs.get(m["gk_club"]), clubs.get(m["def_club"])
-        assert gk and df, m["manager"]
-        assert gk["conceded"] + df["conceded"] == sum(w["ga"] for w in m["weeks"]), m["manager"]
+        mgr = league["managers"][m["manager"]]
+        total = sum(conceded[c].get(w["gameweek"], 0)
+                    for w in m["weeks"]
+                    for c in standings.clubs_at(mgr, w["gameweek"]))
+        assert total == sum(w["ga"] for w in m["weeks"]), m["manager"]
 
 
 def test_club_owners_are_accurate():
@@ -25,7 +36,7 @@ def test_club_owners_are_accurate():
     league = standings.load_league()
     for club, c in clubs.items():
         expected = sorted({name for name, m in league["managers"].items()
-                           if club in (m["gk_club"], m["def_club"])})
+                           if club in standings.current_clubs(m)})
         assert c["owners"] == expected, club
 
 
@@ -172,6 +183,6 @@ def test_every_owned_club_has_a_run_to_show():
     league = standings.load_league()
     up = insights.upcoming()
     for m in league["managers"].values():
-        for role in ("gk_club", "def_club"):
-            assert m[role] in up, m[role]
-            assert up[m[role]]["owners"], m[role]
+        for club in standings.current_clubs(m):
+            assert club in up, club
+            assert up[club]["owners"], club

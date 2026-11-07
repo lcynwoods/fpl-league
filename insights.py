@@ -37,9 +37,9 @@ def club_stats(weeks, ttl=fpl.CACHE_TTL):
             "owners": [],
         }
     for name, m in standings.load_league()["managers"].items():
-        for role in ("gk_club", "def_club"):
-            if m[role] in out:
-                out[m[role]]["owners"].append(name)
+        for club in standings.current_clubs(m):
+            if club in out:
+                out[club]["owners"].append(name)
     for c in out.values():
         c["owners"] = sorted(set(c["owners"]))
     return out
@@ -82,7 +82,8 @@ def squad_value(data, weeks, ttl=fpl.CACHE_TTL):
                     own.get(gw, 0) if key == robot.OWN else goals.get(gw, {}).get(key, 0))
 
         latest = standings._squad_at(m["squads"], max(weeks))
-        spend = prices["clubs"][m["gk_club"]] + prices["clubs"][m["def_club"]]
+        gk_club, def_club = standings.clubs_at(m, max(weeks))
+        spend = prices["clubs"][gk_club] + prices["clubs"][def_club]
         spend += sum(robot.price_of(robot.OWN if p == robot.OWN else p[0], prices)
                      for p in latest["picks"])
 
@@ -142,8 +143,9 @@ def transfer_hindsight(data, ttl=fpl.CACHE_TTL):
                 for gw in since:
                     s = sum(own.get(gw, 0) if p == robot.OWN else goals.get(gw, {}).get(p[0], 0)
                             for p in picks)
-                    a = (conceded.get(m["gk_club"], {}).get(gw, 0)
-                         + conceded.get(m["def_club"], {}).get(gw, 0))
+                    gk_club, def_club = standings.clubs_at(m, gw)
+                    a = (conceded.get(gk_club, {}).get(gw, 0)
+                         + conceded.get(def_club, {}).get(gw, 0))
                     pts += 3 if s > a else (1 if s == a else 0)
                     gs += s
                 return pts, gs
@@ -411,8 +413,8 @@ def upcoming(count=5, ttl=fpl.CACHE_TTL):
                              "home": side == "team_h", "difficulty": f[diff]})
     owners = {}
     for name, m in standings.load_league()["managers"].items():
-        for role in ("gk_club", "def_club"):
-            owners.setdefault(m[role], []).append(name)
+        for club in standings.current_clubs(m):
+            owners.setdefault(club, []).append(name)
     return {club: {"fixtures": rows,
                    "total": sum(r["difficulty"] for r in rows),
                    "owners": sorted(set(owners.get(club, [])))}

@@ -27,6 +27,14 @@
       "opened": "2026-11-01T21:57:58+00:00",
       "_note": "retroactive window, by league decision. Opened after the GW9 deadline with 9 of 10 fixtures played, so it DOES rescore GW9: Danny goes 0-2 L to 2-2 D. The 70m cap was also overridden (70.5m under the difference rule; 69.0m if the squad is priced absolutely -- Danny is the -1.5m draft-list case in the handover).",
       "closed": "2026-11-01T21:57:58+00:00"
+    },
+    {
+      "from": 10,
+      "status": "closed",
+      "opened": "2026-11-02T22:17:33+00:00",
+      "_note": "GW10 team-selection sheet, applied for the whole of GW10 by league decision although Everton 3-1 Coventry had already been played. Six managers changed a club, which the season-long rule does not allow; the new clubs are written onto the GW10 squads so GW3-9 keep the clubs actually fielded. Several squads exceed three changes and some exceed the £70m cap.",
+      "closed": "2026-11-06T22:30:21+00:00",
+      "rules_waived": true
     }
   ],
   "points": {
@@ -139,6 +147,51 @@
             [
               165,
               "João Pedro"
+            ],
+            [
+              426,
+              "B.Fernandes"
+            ],
+            [
+              552,
+              "Brobbey"
+            ],
+            [
+              124,
+              "Groß"
+            ],
+            "OWN",
+            [
+              230,
+              "Branthwaite"
+            ],
+            [
+              34,
+              "Pau"
+            ]
+          ]
+        },
+        {
+          "from": 10,
+          "_note": "GW10 team-selection sheet",
+          "recorded": "2026-11-06T22:30:21+00:00",
+          "budget": 70.0,
+          "out": [
+            [
+              165,
+              "João Pedro"
+            ]
+          ],
+          "in": [
+            [
+              399,
+              "Cherki"
+            ]
+          ],
+          "picks": [
+            [
+              399,
+              "Cherki"
             ],
             [
               426,
@@ -286,6 +339,71 @@
               "Diop"
             ]
           ]
+        },
+        {
+          "from": 10,
+          "def_club": "Bournemouth",
+          "_note": "GW10 team-selection sheet; club change applies from GW10 only",
+          "recorded": "2026-11-06T22:30:21+00:00",
+          "budget": 70.0,
+          "out": [
+            [
+              94,
+              "Schade"
+            ],
+            [
+              229,
+              "Tarkowski"
+            ],
+            [
+              259,
+              "Diop"
+            ]
+          ],
+          "in": [
+            [
+              166,
+              "N.Jackson"
+            ],
+            [
+              129,
+              "Ayari"
+            ],
+            [
+              183,
+              "Rudoni"
+            ]
+          ],
+          "picks": [
+            [
+              166,
+              "N.Jackson"
+            ],
+            [
+              79,
+              "Evanilson"
+            ],
+            [
+              138,
+              "Kostoulas"
+            ],
+            [
+              68,
+              "Tavernier"
+            ],
+            [
+              124,
+              "Groß"
+            ],
+            [
+              129,
+              "Ayari"
+            ],
+            [
+              183,
+              "Rudoni"
+            ]
+          ]
         }
       ]
     },
@@ -404,6 +522,51 @@
               "Gvardiol"
             ]
           ]
+        },
+        {
+          "from": 10,
+          "_note": "GW10 team-selection sheet",
+          "recorded": "2026-11-06T22:30:21+00:00",
+          "budget": 69.0,
+          "out": [
+            [
+              426,
+              "B.Fernandes"
+            ]
+          ],
+          "in": [
+            [
+              166,
+              "N.Jackson"
+            ]
+          ],
+          "picks": [
+            [
+              379,
+              "Isak"
+            ],
+            [
+              165,
+              "João Pedro"
+            ],
+            [
+              166,
+              "N.Jackson"
+            ],
+            [
+              464,
+              "Wissa"
+            ],
+            "OWN",
+            [
+              4,
+              "Gabriel"
+            ],
+            [
+              391,
+              "Gvardiol"
+            ]
+          ]
         }
       ]
     },
@@ -447,6 +610,41 @@
         {
           "from": 6,
           "_note": "0 pick(s) changed in the window; verified against GW6 scorelines",
+          "picks": [
+            [
+              40,
+              "Rogers"
+            ],
+            [
+              426,
+              "B.Fernandes"
+            ],
+            [
+              156,
+              "Neto"
+            ],
+            [
+              458,
+              "Joelinton"
+            ],
+            "OWN",
+            [
+              4,
+              "Gabriel"
+            ],
+            [
+              418,
+              "Maguire"
+            ]
+          ]
+        },
+        {
+          "from": 10,
+          "_note": "GW10 team-selection sheet; sheet states £70.0m, priced at £71.0m; OVER the £70m cap by £1.0m, allowed by league decision",
+          "recorded": "2026-11-06T22:30:21+00:00",
+          "budget": 71.0,
+          "out": [],
+          "in": [],
           "picks": [
             [
               40,
@@ -544,6 +742,68 @@
               "Diop"
             ]
           ]
+        },
+        {
+          "from": 10,
+          "def_club": "Brighton",
+          "_note": "GW10 team-selection sheet; sheet states £70.0m, priced at £69.5m; club change applies from GW10 only",
+          "recorded": "2026-11-06T22:30:21+00:00",
+          "budget": 69.5,
+          "out": [
+            [
+              154,
+              "Palmer"
+            ],
+            [
+              377,
+              "Munoz"
+            ],
+            [
+              259,
+              "Diop"
+            ]
+          ],
+          "in": [
+            [
+              379,
+              "Isak"
+            ],
+            [
+              8,
+              "Calafiori"
+            ],
+            [
+              183,
+              "Rudoni"
+            ]
+          ],
+          "picks": [
+            [
+              379,
+              "Isak"
+            ],
+            [
+              346,
+              "Calvert-Lewin"
+            ],
+            [
+              249,
+              "Barry"
+            ],
+            [
+              53,
+              "Manzambi"
+            ],
+            "OWN",
+            [
+              8,
+              "Calafiori"
+            ],
+            [
+              183,
+              "Rudoni"
+            ]
+          ]
         }
       ]
     },
@@ -587,6 +847,41 @@
         {
           "from": 6,
           "_note": "2 pick(s) changed in the window; verified against GW6 scorelines",
+          "picks": [
+            [
+              426,
+              "B.Fernandes"
+            ],
+            [
+              346,
+              "Calvert-Lewin"
+            ],
+            "OWN",
+            [
+              330,
+              "Bogle"
+            ],
+            [
+              332,
+              "Justin"
+            ],
+            [
+              334,
+              "Muharemović"
+            ],
+            [
+              598,
+              "Elvedi"
+            ]
+          ]
+        },
+        {
+          "from": 10,
+          "_note": "GW10 team-selection sheet; sheet states £70.0m, priced at £70.5m; OVER the £70m cap by £0.5m, allowed by league decision",
+          "recorded": "2026-11-06T22:30:21+00:00",
+          "budget": 70.5,
+          "out": [],
+          "in": [],
           "picks": [
             [
               426,
@@ -732,6 +1027,67 @@
               "Maatsen"
             ]
           ]
+        },
+        {
+          "from": 10,
+          "_note": "GW10 team-selection sheet",
+          "recorded": "2026-11-06T22:30:21+00:00",
+          "budget": 70.0,
+          "out": [
+            [
+              154,
+              "Palmer"
+            ],
+            [
+              429,
+              "Rashford"
+            ],
+            [
+              464,
+              "Wissa"
+            ]
+          ],
+          "in": [
+            [
+              346,
+              "Calvert-Lewin"
+            ],
+            [
+              166,
+              "N.Jackson"
+            ],
+            [
+              68,
+              "Tavernier"
+            ]
+          ],
+          "picks": [
+            [
+              346,
+              "Calvert-Lewin"
+            ],
+            [
+              40,
+              "Rogers"
+            ],
+            [
+              399,
+              "Cherki"
+            ],
+            [
+              166,
+              "N.Jackson"
+            ],
+            "OWN",
+            [
+              68,
+              "Tavernier"
+            ],
+            [
+              36,
+              "Maatsen"
+            ]
+          ]
         }
       ]
     },
@@ -850,6 +1206,76 @@
               "Aina"
             ]
           ]
+        },
+        {
+          "from": 10,
+          "def_club": "Hull City",
+          "_note": "GW10 team-selection sheet; club change applies from GW10 only",
+          "recorded": "2026-11-06T22:30:21+00:00",
+          "budget": 69.0,
+          "out": [
+            [
+              453,
+              "Barnes"
+            ],
+            [
+              4,
+              "Gabriel"
+            ],
+            [
+              449,
+              "Hall"
+            ],
+            [
+              473,
+              "Aina"
+            ]
+          ],
+          "in": [
+            [
+              379,
+              "Isak"
+            ],
+            [
+              249,
+              "Barry"
+            ],
+            [
+              391,
+              "Gvardiol"
+            ],
+            [
+              183,
+              "Rudoni"
+            ]
+          ],
+          "picks": [
+            [
+              379,
+              "Isak"
+            ],
+            [
+              399,
+              "Cherki"
+            ],
+            [
+              426,
+              "B.Fernandes"
+            ],
+            [
+              249,
+              "Barry"
+            ],
+            "OWN",
+            [
+              391,
+              "Gvardiol"
+            ],
+            [
+              183,
+              "Rudoni"
+            ]
+          ]
         }
       ]
     },
@@ -893,6 +1319,41 @@
         {
           "from": 6,
           "_note": "2 pick(s) changed in the window; verified against GW6 scorelines",
+          "picks": [
+            [
+              165,
+              "João Pedro"
+            ],
+            [
+              346,
+              "Calvert-Lewin"
+            ],
+            "OWN",
+            [
+              542,
+              "E.Le Fée"
+            ],
+            [
+              356,
+              "Virgil"
+            ],
+            [
+              313,
+              "Clarke"
+            ],
+            [
+              277,
+              "Egan"
+            ]
+          ]
+        },
+        {
+          "from": 10,
+          "_note": "GW10 team-selection sheet",
+          "recorded": "2026-11-06T22:30:21+00:00",
+          "budget": 70.0,
+          "out": [],
+          "in": [],
           "picks": [
             [
               165,
@@ -1035,6 +1496,60 @@
               "Mosquera"
             ]
           ]
+        },
+        {
+          "from": 10,
+          "def_club": "Leeds",
+          "_note": "GW10 team-selection sheet; sheet states £70.0m, priced at £73.5m; OVER the £70m cap by £3.5m, allowed by league decision; club change applies from GW10 only",
+          "recorded": "2026-11-06T22:30:21+00:00",
+          "budget": 73.5,
+          "out": [
+            "OWN",
+            [
+              605,
+              "Yalcouyé"
+            ]
+          ],
+          "in": [
+            [
+              4,
+              "Gabriel"
+            ],
+            [
+              34,
+              "Pau"
+            ]
+          ],
+          "picks": [
+            [
+              411,
+              "Haaland"
+            ],
+            [
+              427,
+              "Mbeumo"
+            ],
+            [
+              464,
+              "Wissa"
+            ],
+            [
+              165,
+              "João Pedro"
+            ],
+            [
+              4,
+              "Gabriel"
+            ],
+            [
+              11,
+              "Mosquera"
+            ],
+            [
+              34,
+              "Pau"
+            ]
+          ]
         }
       ]
     },
@@ -1111,6 +1626,79 @@
               "Muharemović"
             ]
           ]
+        },
+        {
+          "from": 10,
+          "gk_club": "Crystal Palace",
+          "_note": "GW10 team-selection sheet; sheet states £68.0m, priced at £69.0m; club change applies from GW10 only",
+          "recorded": "2026-11-06T22:30:21+00:00",
+          "budget": 69.0,
+          "out": [
+            [
+              398,
+              "Foden"
+            ],
+            [
+              13,
+              "Rice"
+            ],
+            [
+              331,
+              "Gudmundsson"
+            ],
+            [
+              334,
+              "Muharemović"
+            ]
+          ],
+          "in": [
+            [
+              167,
+              "Delap"
+            ],
+            [
+              366,
+              "Wirtz"
+            ],
+            [
+              569,
+              "Gonzalo"
+            ],
+            [
+              594,
+              "David"
+            ]
+          ],
+          "picks": [
+            [
+              167,
+              "Delap"
+            ],
+            [
+              366,
+              "Wirtz"
+            ],
+            [
+              569,
+              "Gonzalo"
+            ],
+            [
+              594,
+              "David"
+            ],
+            [
+              371,
+              "Gravenberch"
+            ],
+            [
+              345,
+              "Tanaka"
+            ],
+            [
+              238,
+              "Grealish"
+            ]
+          ]
         }
       ]
     },
@@ -1157,6 +1745,44 @@
         {
           "from": 6,
           "_note": "0 pick(s) changed in the window; verified against GW6 scorelines",
+          "picks": [
+            [
+              411,
+              "Haaland"
+            ],
+            [
+              165,
+              "João Pedro"
+            ],
+            [
+              94,
+              "Schade"
+            ],
+            [
+              316,
+              "Emersonn"
+            ],
+            [
+              268,
+              "King"
+            ],
+            [
+              388,
+              "Guéhi"
+            ],
+            [
+              593,
+              "Dedić"
+            ]
+          ]
+        },
+        {
+          "from": 10,
+          "_note": "GW10 team-selection sheet",
+          "recorded": "2026-11-06T22:30:21+00:00",
+          "budget": 70.0,
+          "out": [],
+          "in": [],
           "picks": [
             [
               411,
@@ -1260,6 +1886,76 @@
               "Vaz"
             ]
           ]
+        },
+        {
+          "from": 10,
+          "def_club": "Brighton",
+          "_note": "GW10 team-selection sheet; club change applies from GW10 only",
+          "recorded": "2026-11-06T22:30:21+00:00",
+          "budget": 70.0,
+          "out": [
+            [
+              124,
+              "Groß"
+            ],
+            [
+              649,
+              "Maitland-Niles"
+            ],
+            [
+              290,
+              "Slater"
+            ],
+            [
+              637,
+              "Vaz"
+            ]
+          ],
+          "in": [
+            [
+              249,
+              "Barry"
+            ],
+            [
+              4,
+              "Gabriel"
+            ],
+            [
+              112,
+              "Van Hecke"
+            ],
+            [
+              183,
+              "Rudoni"
+            ]
+          ],
+          "picks": [
+            [
+              411,
+              "Haaland"
+            ],
+            [
+              249,
+              "Barry"
+            ],
+            "OWN",
+            [
+              4,
+              "Gabriel"
+            ],
+            [
+              229,
+              "Tarkowski"
+            ],
+            [
+              112,
+              "Van Hecke"
+            ],
+            [
+              183,
+              "Rudoni"
+            ]
+          ]
         }
       ]
     },
@@ -1330,6 +2026,51 @@
               "Grealish"
             ]
           ]
+        },
+        {
+          "from": 10,
+          "_note": "GW10 team-selection sheet",
+          "recorded": "2026-11-06T22:30:21+00:00",
+          "budget": 70.0,
+          "out": [
+            [
+              238,
+              "Grealish"
+            ]
+          ],
+          "in": [
+            [
+              102,
+              "Yarmoliuk"
+            ]
+          ],
+          "picks": [
+            [
+              154,
+              "Palmer"
+            ],
+            [
+              427,
+              "Mbeumo"
+            ],
+            [
+              426,
+              "B.Fernandes"
+            ],
+            [
+              526,
+              "Solanke"
+            ],
+            [
+              209,
+              "Johnson"
+            ],
+            "OWN",
+            [
+              102,
+              "Yarmoliuk"
+            ]
+          ]
         }
       ]
     },
@@ -1376,6 +2117,44 @@
         {
           "from": 6,
           "_note": "2 pick(s) changed in the window; verified against GW6 scorelines",
+          "picks": [
+            [
+              165,
+              "João Pedro"
+            ],
+            [
+              346,
+              "Calvert-Lewin"
+            ],
+            [
+              439,
+              "Šeško"
+            ],
+            [
+              136,
+              "Welbeck"
+            ],
+            [
+              98,
+              "Janelt"
+            ],
+            [
+              116,
+              "Dunk"
+            ],
+            [
+              34,
+              "Pau"
+            ]
+          ]
+        },
+        {
+          "from": 10,
+          "_note": "GW10 team-selection sheet",
+          "recorded": "2026-11-06T22:30:21+00:00",
+          "budget": 69.5,
+          "out": [],
+          "in": [],
           "picks": [
             [
               165,
