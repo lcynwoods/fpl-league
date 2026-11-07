@@ -20,7 +20,7 @@ def _get(path, cache_key, ttl=CACHE_TTL):
     cached = os.path.join(CACHE_DIR, cache_key + ".json")
     if os.path.exists(cached) and time.time() - os.path.getmtime(cached) < ttl:
         try:
-            with open(cached) as fh:
+            with open(cached, encoding="utf-8") as fh:
                 return json.load(fh)
         except ValueError:
             # Half-written by an older build, or truncated by a crash.
@@ -49,7 +49,7 @@ def _write_cache(cached, data):
     os.makedirs(CACHE_DIR, exist_ok=True)
     fd, tmp = tempfile.mkstemp(dir=CACHE_DIR, suffix=".tmp")
     try:
-        with os.fdopen(fd, "w") as fh:
+        with os.fdopen(fd, "w", encoding="utf-8") as fh:
             json.dump(data, fh)
         os.replace(tmp, cached)          # atomic on POSIX
     except BaseException:

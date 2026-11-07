@@ -241,7 +241,7 @@ def save(league, path=standings.TEAMS_PATH):
     folder = os.path.dirname(os.path.abspath(path))
     fd, tmp = tempfile.mkstemp(dir=folder, suffix=".tmp")
     try:
-        with os.fdopen(fd, "w") as fh:
+        with os.fdopen(fd, "w", encoding="utf-8") as fh:
             json.dump(league, fh, indent=2, ensure_ascii=False)
             fh.write("\n")
         os.replace(tmp, path)
@@ -257,5 +257,5 @@ def log(event, path=LOG_PATH):
     The GW3-5 line-ups once survived only in a photograph. This file is
     never rewritten, so even an edit to teams.json leaves a trail.
     """
-    with open(path, "a") as fh:
+    with open(path, "a", encoding="utf-8") as fh:
         fh.write(json.dumps(event, ensure_ascii=False) + "\n")

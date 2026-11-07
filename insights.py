@@ -197,11 +197,38 @@ def _owned_ids(owned, league):
     return [(o, ids[o["name"]]) for o in owned if o["name"] in ids]
 
 
-def facts(data, weeks, ttl=fpl.CACHE_TTL):
-    """One-line observations, generated from the season rather than written.
+# How rude the generated text is. The page's sass dial picks one; "spicy"
+# is the default so a caller that does not ask gets the house tone.
+SASS = ("mild", "spicy", "savage")
 
-    Each is a (headline, detail) pair. They are recomputed on refresh, so
-    nothing here goes stale or has to be maintained by hand.
+
+def _say(mild, spicy=None, savage=None):
+    """One line at every sass level; a level left out borrows the one below."""
+    spicy = spicy or mild
+    return {"mild": mild, "spicy": spicy, "savage": savage or spicy}
+
+
+def _s(n):
+    return "" if n == 1 else "s"
+
+
+def _names(names):
+    names = list(names)
+    return names[0] if len(names) == 1 else ", ".join(names[:-1]) + " and " + names[-1]
+
+
+def facts(data, weeks, ttl=fpl.CACHE_TTL, sass="spicy"):
+    """One-line observations as (headline, detail) pairs, at one sass level."""
+    return banter(data, weeks, ttl)["facts"][sass]
+
+
+def banter(data, weeks, ttl=fpl.CACHE_TTL):
+    """Facts and jokes at every sass level: {"facts": {level: [(h, d)]}, "jokes": ...}.
+
+    Generated from the season rather than written, and recomputed on
+    refresh, so nothing here goes stale or has to be maintained by hand.
+    Every level states the same numbers -- the dial changes the tone, never
+    the facts.
     """
     league = standings.load_league()
     prices = robot.load_prices()
@@ -209,9 +236,31 @@ def facts(data, weeks, ttl=fpl.CACHE_TTL):
     clubs = club_stats(weeks, ttl)
     owned = ownership(data, weeks, ttl)
     value = squad_value(data, weeks, ttl)
-    goals = robot.goals_by_week(weeks, league.get("adjustments", []), ttl)
     own = robot.own_by_week(weeks, ttl)
     out = []
+
+    top, bottom = rows[0], rows[-1]
+    if len(rows) > 1:
+        second = rows[1]
+        gap = top["pts"] - second["pts"]
+        lead = ("%d clear of %s" % (gap, second["manager"]) if gap
+                else "level on points with %s" % second["manager"])
+        base = "%d pts from %d games, %s." % (top["pts"], top["played"], lead)
+        out.append(_say(
+            ("%s is top of the table" % top["manager"], base),
+            ("%s is top of the table" % top["manager"], base + " Enjoy it while it lasts."),
+            ("%s is top of the table" % top["manager"],
+             base + (" Goal difference %+d. Hardly a dynasty." % top["gd"] if gap
+                     else " Leading on a technicality."))))
+
+        base = ("%d point%s from %d games, goal difference %+d."
+                % (bottom["pts"], _s(bottom["pts"]), bottom["played"], bottom["gd"]))
+        out.append(_say(
+            ("%s is bottom of the table" % bottom["manager"], base),
+            ("%s is bottom of the table" % bottom["manager"],
+             base + " Plenty of season left. Probably."),
+            ("%s is propping up the table" % bottom["manager"],
+             base + " The robot manager has started feeling sorry for them.")))
 
     og = next((o for o in owned if o["name"] == "Own Goals"), None)
     if og and prices:
@@ -226,28 +275,49 @@ def facts(data, weeks, ttl=fpl.CACHE_TTL):
         rival_rate, rival_name = max(rival) if rival else (0.0, "-")
         standing = ("ahead of" if rate > rival_rate + 0.005 else
                     "level with" if rate > rival_rate - 0.005 else "behind")
-        out.append(("Own Goals returns %.2f goals per £m" % rate,
-                    "%d goal%s for £%.1fm, which is %s the best owned player "
-                    "(%s, %.2f). %d pick%s outscored it outright, and %d of %d "
-                    "managers hold it."
-                    % (og["goals"], "" if og["goals"] == 1 else "s",
-                       prices["own_goals"], standing, rival_name, rival_rate,
-                       len(better), "" if len(better) == 1 else "s",
-                       og["count"], len(rows))))
+        headline = "Own Goals returns %.2f goals per £m" % rate
+        base = ("%d goal%s for £%.1fm, which is %s the best owned player "
+                "(%s, %.2f). %d pick%s outscored it outright, and %d of %d "
+                "managers hold it."
+                % (og["goals"], _s(og["goals"]), prices["own_goals"], standing,
+                   rival_name, rival_rate, len(better), _s(len(better)),
+                   og["count"], len(rows)))
+        without = [r["manager"] for r in rows if r["manager"] not in og["owners"]]
+        out.append(_say(
+            (headline, base),
+            (headline, base + " " + {
+                "ahead of": "Not bad for a player who doesn't exist.",
+                "level with": "Keeping pace with real footballers, without the legs.",
+                "behind": "Even a player who doesn't exist has off weeks."}[standing]),
+            (headline, base + (" %s went without it. Bold." % _names(without)
+                               if 0 < len(without) <= 3
+                               else " An imaginary player in %d squads says plenty "
+                                    "about the scouting." % og["count"]))))
 
     tight = min(clubs.values(), key=lambda c: (c["per_week"], -c["clean_sheets"]))
-    out.append(("%s have been the safest defence" % tight["club"],
-                "%d conceded in %d week%s, %d of them clean. %s"
-                % (tight["conceded"], tight["played"], "" if tight["played"] == 1 else "s",
-                   tight["clean_sheets"],
-                   "Owned by " + ", ".join(tight["owners"]) + "." if tight["owners"]
-                   else "Nobody owns them.")))
+    headline = "%s have been the safest defence" % tight["club"]
+    base = ("%d conceded in %d week%s, %d of them clean."
+            % (tight["conceded"], tight["played"], _s(tight["played"]), tight["clean_sheets"]))
+    if tight["owners"]:
+        owners = "Owned by %s." % ", ".join(tight["owners"])
+        out.append(_say((headline, "%s %s" % (base, owners)),
+                        (headline, "%s %s Boring, but it works." % (base, owners)),
+                        (headline, "%s %s Everyone else picked a defence with their "
+                                   "eyes shut." % (base, owners))))
+    else:
+        out.append(_say((headline, base + " Nobody owns them."),
+                        (headline, base + " Nobody owns them, which takes some doing."),
+                        (headline, base + " %d managers, and not one of you picked them. "
+                                          "Scouting of the highest order." % len(rows))))
 
     leaky = max(clubs.values(), key=lambda c: c["per_week"])
     if leaky["owners"]:
-        out.append(("%s have been the costliest club to own" % leaky["club"],
-                    "%.2f conceded a week, worst single week %d. Owned by %s."
-                    % (leaky["per_week"], leaky["worst"], ", ".join(leaky["owners"]))))
+        headline = "%s have been the costliest club to own" % leaky["club"]
+        base = "%.2f conceded a week, worst single week %d." % (leaky["per_week"], leaky["worst"])
+        owners = ", ".join(leaky["owners"])
+        out.append(_say((headline, "%s Owned by %s." % (base, owners)),
+                        (headline, "%s Condolences to %s." % (base, owners)),
+                        (headline, "%s %s chose this. On purpose." % (base, owners))))
 
     blanks = sum(len(v["blanks"]) for v in value)
     if blanks:
@@ -260,19 +330,62 @@ def facts(data, weeks, ttl=fpl.CACHE_TTL):
             for b in worst["blanks"])
         sold_well = sum(1 for v in value for b in v["blanks"] if b["goals_all"] > 0)
         held_total = sum(len(v["picks"]) for v in value)
-        out.append(("%d of the %d picks held this season returned nothing to their owner"
-                    % (blanks, held_total),
-                    "%s carries the most with %d: %s.%s"
-                    % (worst["manager"], len(worst["blanks"]), listed,
-                       " %d of the league's blanks did score — just not while "
-                       "that manager held them." % sold_well if sold_well else "")))
+        n = len(worst["blanks"])
+        out.append(_say(
+            ("%d of the %d picks held this season returned nothing to their owner"
+             % (blanks, held_total),
+             "%s carries the most with %d: %s.%s"
+             % (worst["manager"], n, listed,
+                " %d of the league's blanks did score — just not while that "
+                "manager held them." % sold_well if sold_well else "")),
+            ("%d of the %d picks held this season have been dead weight" % (blanks, held_total),
+             "Not one goal for their owner. %s is carrying the most, with %d "
+             "passengers: %s.%s"
+             % (worst["manager"], n, listed,
+                " %d of them did score — just never for whoever was paying at "
+                "the time." % sold_well if sold_well else "")),
+            ("%d of the %d picks held this season are pure dead weight" % (blanks, held_total),
+             "%s leads the league in passengers with %d: %s. That's not a squad, "
+             "it's a coach trip.%s"
+             % (worst["manager"], n, listed,
+                " %d of them scored the moment someone else was paying. "
+                "Classic." % sold_well if sold_well else ""))))
+
+        # The most money sunk into nothing. Own Goals is left out: it costs
+        # what it costs, and its blank weeks have a fact of their own.
+        sunk = {}
+        for v in value:
+            for p in v["picks"]:
+                if p["goals"] == 0 and p["price"] and p["name"] != "Own Goals":
+                    entry = sunk.setdefault(p["name"], [p["price"], [], 0])
+                    entry[1].append(v["manager"])
+                    entry[2] = max(entry[2], p["goals_all"])
+        if sunk:
+            name, (price, holders, elsewhere) = max(sunk.items(), key=lambda kv: kv[1][0])
+            who = " and ".join(holders)
+            out.append(_say(
+                ("The most expensive blank is %s" % name,
+                 "£%.1fm, and no goals yet for %s.%s"
+                 % (price, who, " %d for other managers." % elsewhere if elsewhere else "")),
+                ("The priciest dead weight is %s" % name,
+                 "£%.1fm of zero goals for %s. %s"
+                 % (price, who, "Scored %d for other people, naturally." % elsewhere
+                    if elsewhere else "Lovely to look at, though.")),
+                ("The priciest dead weight is %s" % name,
+                 "£%.1fm of nothing for %s. %s"
+                 % (price, who, "Scored %d for other people. Read into that what you "
+                    "will." % elsewhere if elsewhere else "A very expensive pot plant."))))
 
     solo = [o for o in owned if o["count"] == 1 and o["goals"] > 0]
     if solo:
-        top = max(solo, key=lambda o: o["goals"])
-        out.append(("The best differential is %s" % top["name"],
-                    "%d goals, and only %s owns him."
-                    % (top["goals"], top["owners"][0])))
+        pick = max(solo, key=lambda o: o["goals"])
+        headline = "The best differential is %s" % pick["name"]
+        out.append(_say(
+            (headline, "%d goals, and only %s owns him." % (pick["goals"], pick["owners"][0])),
+            (headline, "%d goals, and only %s had the nerve to pick him."
+                       % (pick["goals"], pick["owners"][0])),
+            (headline, "%d goals, and only %s picked him. The other %d of you were busy "
+                       "buying dead weight." % (pick["goals"], pick["owners"][0], len(rows) - 1))))
 
     best_week, best_val = None, -1
     for m in data["managers"]:
@@ -281,16 +394,122 @@ def facts(data, weeks, ttl=fpl.CACHE_TTL):
                 best_week, best_val = (m["manager"], w), w["gs"]
     if best_week:
         mgr, w = best_week
-        out.append(("The biggest week belongs to %s" % mgr,
-                    "%d goals in GW%d, finishing %d–%d."
-                    % (w["gs"], w["gameweek"], w["gs"], w["ga"])))
+        headline = "The biggest week belongs to %s" % mgr
+        base = "%d goals in GW%d, finishing %d–%d." % (w["gs"], w["gameweek"], w["gs"], w["ga"])
+        out.append(_say((headline, base),
+                        (headline, base + " Expect to hear about it."),
+                        (headline, base + " %s hasn't stopped talking about it since." % mgr)))
 
     quiet = [w for w in weeks if own.get(w, 0) == 0]
     if quiet:
-        out.append(("Own Goals has blanked in %d of %d weeks" % (len(quiet), len(weeks)),
-                    "No own goals at all in GW%s — which is the risk you take."
-                    % ", ".join(str(w) for w in quiet)))
+        headline = "Own Goals has blanked in %d of %d weeks" % (len(quiet), len(weeks))
+        listed = ", ".join(str(w) for w in quiet)
+        out.append(_say(
+            (headline, "No own goals at all in GW%s — which is the risk you take." % listed),
+            (headline, "No own goals at all in GW%s — the risk of signing a player "
+                       "who only turns up when a defender panics." % listed),
+            (headline, "No own goals at all in GW%s. Turns out \"hope a defender "
+                       "panics\" isn't a strategy." % listed)))
 
+    return {"facts": {level: [f[level] for f in out] for level in SASS},
+            "jokes": _jokes(rows, value)}
+
+
+def _jokes(rows, value):
+    """A few one-liners per sass level, aimed at whoever has earned it."""
+    top, bottom = rows[0]["manager"], rows[-1]["manager"]
+    dead = max(value, key=lambda v: len(v["blanks"]))["manager"] if value else bottom
+    mild = [
+        "Why did the striker bring string to the match? To tie the score.",
+        "Own Goals is the only player in the league who has never asked for a pay rise.",
+        "The robot manager picks its squad after the goals are in. Honestly, it's the "
+        "only way any of us would beat it.",
+        "Fantasy football: where \"I'll just check the scores\" becomes a two-hour job.",
+    ]
+    spicy = [
+        "Own Goals: the only pick that gets better when the opposition gets worse.",
+        "The transfer window is open. %s, that's your cue." % bottom,
+        "%s's squad has been called \"a work in progress\". By %s. Nobody else is that "
+        "generous." % (bottom, bottom),
+        "Seven scorers and two clubs. Somehow %s still found room for that much dead "
+        "weight." % dead,
+    ]
+    savage = [
+        "%s asked the robot manager for advice. The robot asked for a transfer." % bottom,
+        "%s's squad isn't a team, it's a waiting room." % dead,
+        "Somewhere a scout is watching %s's picks and quietly updating their CV." % bottom,
+        "%s is the reason the table needs a bottom." % bottom,
+    ]
+    if top != bottom:
+        savage.append("%s is top of the league, which tells you everything about the "
+                      "standard of the league." % top)
+    return {"mild": mild, "spicy": mild[:2] + spicy, "savage": spicy[:1] + savage}
+
+
+def spot_prizes(data, weeks):
+    """Five awards per gameweek, decided by that week's results alone.
+
+    [{"gameweek", "provisional", "prizes": [{"award", "winners", "blurb": {level: text}}]}]
+    Ties share the prize. An award nobody earned that week -- no win, no
+    defeat, no blank -- is left out rather than handed to nobody.
+    """
+    out = []
+    for gw in weeks:
+        played = [(m["manager"], w) for m in data["managers"]
+                  for w in m["weeks"] if w["gameweek"] == gw]
+        if not played:
+            continue
+
+        def best(key, rows=played, low=False):
+            v = (min if low else max)(key(w) for _, w in rows)
+            return v, [m for m, w in rows if key(w) == v]
+
+        prizes = []
+
+        def award(name, winners, blurb):
+            prizes.append({"award": name, "winners": winners, "blurb": blurb})
+
+        v, who = best(lambda w: w["gs"])
+        if v:
+            award("Golden Boot", who, _say("Most goals in GW%d: %d." % (gw, v),
+                                           "%d goal%s. Show-off." % (v, _s(v)),
+                                           "%d goal%s. Don't get used to it." % (v, _s(v))))
+
+        v, who = best(lambda w: w["ga"], low=True)
+        award("Brick Wall", who, _say(
+            "A clean sheet." if v == 0 else "Fewest conceded: %d." % v,
+            "%s Parked the bus and didn't apologise." % ("Clean sheet." if v == 0
+                                                         else "%d conceded." % v),
+            "%s The rest of you should take notes. You won't."
+            % ("A clean sheet." if v == 0 else "Conceded %d." % v)))
+
+        v, who = best(lambda w: w["gs"] - w["ga"], low=True)
+        if v < 0:
+            award("Wooden Spoon", who, _say("Heaviest defeat: lost by %d." % -v,
+                                            "Lost by %d. Thoughts and prayers." % -v,
+                                            "Lost by %d. Have you considered a different "
+                                            "hobby?" % -v))
+
+        # Own Goals is a punt on the opposition, not a player you chose, so
+        # it does not count towards a manager's passengers.
+        v, who = best(lambda w: sum(1 for s in w["scorers"]
+                                    if s["name"] != "Own Goals" and s["goals"] == 0))
+        if v:
+            award("Dead Weight Award", who, _say(
+                "%d pick%s without a goal." % (v, _s(v)),
+                "%d passenger%s. Lovely day out for them." % (v, _s(v)),
+                "%d pick%s did absolutely nothing. Paying to watch, essentially." % (v, _s(v))))
+
+        wins = [(m, w) for m, w in played if w["result"] == "W"]
+        if wins:
+            v, who = best(lambda w: w["gs"], rows=wins, low=True)
+            award("Daylight Robbery", who, _say(
+                "The win with the fewest goals: %d." % v,
+                "Won with %d goal%s. Ugly, but it counts." % (v, _s(v)),
+                "Won with %d goal%s. Nobody enjoyed watching that." % (v, _s(v))))
+
+        out.append({"gameweek": gw, "provisional": gw in data["provisional"],
+                    "prizes": prizes})
     return out
 
 
@@ -356,7 +575,7 @@ def palette(ttl=fpl.CACHE_TTL):
     path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "palette.json")
     if not os.path.exists(path):
         return None
-    pal = json.load(open(path))
+    pal = json.load(open(path, encoding="utf-8"))
     return {"light": pal["light"], "dark": pal["dark"]}
 
 

@@ -20,6 +20,11 @@
       "opened": "2026-10-24T10:27:54+00:00",
       "_note": "emergency window: Saka (ARS) injured. Opened after the FPL GW8 deadline by league agreement; verified not to rescore the one GW8 fixture already played.",
       "closed": "2026-10-24T10:27:54+00:00"
+    },
+    {
+      "from": 9,
+      "status": "open",
+      "opened": "2026-10-29T08:47:58+00:00"
     }
   ],
   "points": {
@@ -132,6 +137,51 @@
             [
               165,
               "João Pedro"
+            ],
+            [
+              426,
+              "B.Fernandes"
+            ],
+            [
+              552,
+              "Brobbey"
+            ],
+            [
+              124,
+              "Groß"
+            ],
+            "OWN",
+            [
+              230,
+              "Branthwaite"
+            ],
+            [
+              34,
+              "Pau"
+            ]
+          ]
+        },
+        {
+          "from": 9,
+          "_note": "1 pick(s) changed in the window; recorded in the app",
+          "recorded": "2026-10-29T08:48:36+00:00",
+          "budget": 70.0,
+          "out": [
+            [
+              165,
+              "João Pedro"
+            ]
+          ],
+          "in": [
+            [
+              399,
+              "Cherki"
+            ]
+          ],
+          "picks": [
+            [
+              399,
+              "Cherki"
             ],
             [
               426,
@@ -346,6 +396,48 @@
               403,
               "Sávio"
             ],
+            [
+              4,
+              "Gabriel"
+            ],
+            [
+              391,
+              "Gvardiol"
+            ]
+          ]
+        },
+        {
+          "from": 9,
+          "_note": "1 pick(s) changed in the window; recorded in the app",
+          "recorded": "2026-10-29T09:15:58+00:00",
+          "budget": 69.0,
+          "out": [
+            [
+              403,
+              "Sávio"
+            ]
+          ],
+          "in": [
+            "OWN"
+          ],
+          "picks": [
+            [
+              379,
+              "Isak"
+            ],
+            [
+              165,
+              "João Pedro"
+            ],
+            [
+              426,
+              "B.Fernandes"
+            ],
+            [
+              464,
+              "Wissa"
+            ],
+            "OWN",
             [
               4,
               "Gabriel"
@@ -967,6 +1059,51 @@
             [
               165,
               "João Pedro"
+            ],
+            [
+              427,
+              "Mbeumo"
+            ],
+            [
+              464,
+              "Wissa"
+            ],
+            "OWN",
+            [
+              605,
+              "Yalcouyé"
+            ],
+            [
+              11,
+              "Mosquera"
+            ]
+          ]
+        },
+        {
+          "from": 9,
+          "_note": "1 pick(s) changed in the window; recorded in the app",
+          "recorded": "2026-10-29T08:53:07+00:00",
+          "budget": 66.5,
+          "out": [
+            [
+              165,
+              "João Pedro"
+            ]
+          ],
+          "in": [
+            [
+              68,
+              "Tavernier"
+            ]
+          ],
+          "picks": [
+            [
+              411,
+              "Haaland"
+            ],
+            [
+              68,
+              "Tavernier"
             ],
             [
               427,

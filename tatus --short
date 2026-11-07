@@ -1,0 +1,597 @@
+warning: in the working copy of 'app.py', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'robot.py', LF will be replaced by CRLF the next time Git touches it
+[1mdiff --git a/app.py b/app.py[m
+[1mindex 282f12d..5250947 100644[m
+[1m--- a/app.py[m
+[1m+++ b/app.py[m
+[36m@@ -8,6 +8,7 @@[m [ma local dashboard: bound to localhost, stdlib only, no auth.[m
+ """[m
+ import datetime[m
+ import json[m
+[32m+[m[32mfrom operator import index[m
+ import os[m
+ import sys[m
+ import tempfile[m
+[36m@@ -139,6 +140,7 @@[m [mclass Handler(BaseHTTPRequestHandler):[m
+         try:[m
+             data = standings.build()[m
+             span = weeks or data["played"][m
+[32m+[m[32m            talk = insights.banter(data, span)[m
+             out = {[m
+                 "weeks": span,[m
+                 "clubs": insights.club_stats(span),[m
+[36m@@ -148,10 +150,14 @@[m [mclass Handler(BaseHTTPRequestHandler):[m
+                 "expected": insights.expected_goals(data, span),[m
+                 "palette": insights.palette(),[m
+                 "availability": insights.availability(),[m
+[32m+[m[32m                "suspensions": self._suspensions(),[m
+                 "upcoming": insights.upcoming(),[m
+                 "shape": insights.gameweek_shape(),[m
+[31m-                "facts": [{"headline": h, "detail": d}[m
+[31m-                          for h, d in insights.facts(data, span)],[m
+[32m+[m[32m                # every sass level at once, so the dial needs no round trip[m
+[32m+[m[32m                "facts": {level: [{"headline": h, "detail": d} for h, d in facts][m
+[32m+[m[32m                          for level, facts in talk["facts"].items()},[m
+[32m+[m[32m                "jokes": talk["jokes"],[m
+[32m+[m[32m                "prizes": insights.spot_prizes(data, span),[m
+             }[m
+             body = json.dumps(out)[m
+             ROBOT_CACHE[key] = body[m
+[36m@@ -373,3 +379,4 @@[m [mif __name__ == "__main__":[m
+         ThreadingHTTPServer(("127.0.0.1", PORT), Handler).serve_forever()[m
+     except KeyboardInterrupt:[m
+         print("\nstopped")[m
+[32m+[m[32mgit restore -- app.py index.html robot.py[m
+[1mdiff --git a/index.html b/index.html[m
+[1mindex dd18703..32d6b24 100644[m
+[1m--- a/index.html[m
+[1m+++ b/index.html[m
+[36m@@ -4,7 +4,13 @@[m
+ <meta charset="utf-8">[m
+ <meta name="viewport" content="width=device-width, initial-scale=1">[m
+ <title>7 Stars League</title>[m
+[31m-<style>[m
+[32m+[m[32m<style>[m[41m  [m
+[32m+[m[32m.susp-icon {[m
+[32m+[m[32m    display: inline-block; width: 10px; height: 10px; margin-right: 6px;[m
+[32m+[m[32m    background: var(--bad); border-radius: 2px; vertical-align: 1px;[m
+[32m+[m[32m    cursor: help;[m
+[32m+[m[32m  }[m
+[32m+[m
+   :root {[m
+     color-scheme: light;[m
+     --surface-0: #f5f5f3;[m
+[36m@@ -232,6 +238,26 @@[m
+     margin-left: auto; background: transparent; color: var(--text-muted);[m
+     border: 1px solid var(--border); border-radius: 6px; padding: 2px 9px; font-size: 12px;[m
+   }[m
+[32m+[m[32m  .fact .sass { margin-left: auto; align-items: center; }[m
+[32m+[m[32m  .fact .sass .label { font-size: 10px; font-weight: 700; letter-spacing: 0.07em;[m
+[32m+[m[32m                       text-transform: uppercase; color: var(--text-muted); padding: 0 8px; }[m
+[32m+[m[32m  .fact .sass button { margin-left: 0; border: none; border-radius: 0; }[m
+[32m+[m[32m  .fact .sass + button { margin-left: 0; }[m
+[32m+[m
+[32m+[m[32m  .prizes { padding: 4px 18px 16px; }[m
+[32m+[m[32m  .prizes .step { display: flex; align-items: center; gap: 10px; margin-bottom: 8px;[m
+[32m+[m[32m                  font-size: 13px; color: var(--text-secondary); }[m
+[32m+[m[32m  .prizes .step b { color: var(--text-primary); font-size: 15px; }[m
+[32m+[m[32m  .prizes .step button { background: transparent; color: var(--text-secondary);[m
+[32m+[m[32m                         border: 1px solid var(--border); border-radius: 6px; padding: 1px 9px; }[m
+[32m+[m[32m  .prizes .step button:disabled { opacity: 0.35; cursor: default; }[m
+[32m+[m[32m  .prize { display: grid; grid-template-columns: 150px 1fr; gap: 4px 14px;[m
+[32m+[m[32m           padding: 9px 0; border-top: 1px solid var(--border); font-size: 13px; }[m
+[32m+[m[32m  .prize .award { font-size: 11px; font-weight: 700; letter-spacing: 0.05em;[m
+[32m+[m[32m                  text-transform: uppercase; color: var(--text-muted); padding-top: 2px; }[m
+[32m+[m[32m  .prize .who { font-weight: 650; color: var(--text-primary); }[m
+[32m+[m[32m  .prize .blurb { color: var(--text-secondary); }[m
+[32m+[m[32m  @media (max-width: 560px) { .prize { grid-template-columns: 1fr; } }[m
+   td.clubs { cursor: help; }[m
+   .mini { width: 100%; border-collapse: collapse; margin-top: 4px; }[m
+   .mini th, .mini td { padding: 5px 8px; font-size: 13px; text-align: right; }[m
+[36m@@ -382,6 +408,11 @@[m
+     <div class="podium" id="podium"></div>[m
+   </div>[m
+ [m
+[32m+[m[32m  <div class="card" id="prizes-card" hidden>[m
+[32m+[m[32m    <h2>Spot prizes <span style="text-transform:none;letter-spacing:0;font-weight:400">&mdash; awarded on the week&rsquo;s results, whether you like it or not</span></h2>[m
+[32m+[m[32m    <div class="prizes" id="prizes"></div>[m
+[32m+[m[32m  </div>[m
+[32m+[m
+   <div class="card">[m
+     <h2 id="title">Standings</h2>[m
+     <table>[m
+[36m@@ -678,7 +709,19 @@[m [mfunction chart(table) {[m
+ [m
+ let rows_cached = [];[m
+ let ROBOT_KEY = null;[m
+[31m-let INSIGHTS = null, INSIGHTS_KEY = null, FACT = 0;[m
+[32m+[m[32mlet INSIGHTS = null, INSIGHTS_KEY = null, FACT = 0, PRIZE_WEEK = null;[m
+[32m+[m
+[32m+[m[32m// The sass dial is a per-viewer preference, so it lives in this browser[m
+[32m+[m[32m// only -- and the page must still work when storage is blocked.[m
+[32m+[m[32mconst SASS_LEVELS = ["mild", "spicy", "savage"];[m
+[32m+[m[32mlet SASS = "spicy";[m
+[32m+[m[32mtry { if (SASS_LEVELS.includes(localStorage.getItem("sass"))) SASS = localStorage.getItem("sass"); } catch (e) {}[m
+[32m+[m[32mfunction setSass(level) {[m
+[32m+[m[32m  SASS = level;[m
+[32m+[m[32m  try { localStorage.setItem("sass", level); } catch (e) {}[m
+[32m+[m[32m  renderFact();[m
+[32m+[m[32m  renderPrizes();[m
+[32m+[m[32m}[m
+ [m
+ /** Stable colour per manager: position in the league's own order, so a[m
+  *  manager keeps their colour wherever they appear and whatever the sort. */[m
+[36m@@ -753,7 +796,7 @@[m [mfunction renderRobot(out, weeks) {[m
+       <div class="line">[m
+         <span class="botname">${b.name}</span>[m
+         <span class="score">${p.gs}\u2013${ga}</span>[m
+[31m-        <span>${p.pts} pt${p.pts === 1 ? "" : "s"}</span>[m
+[32m+[m[32m        <span>${p.pts} pt${p.pts === 1 ? "" : "s"} (${p.gs}\u2013${p.ga})</span>[m
+         <span class="vs">GD ${p.gd > 0 ? "+" : ""}${p.gd}${[m
+           out.capped ? ` \u00b7 \u00a3${p.spend}m of \u00a3${out.budget}m` : ""} \u00b7 ${b.blurb}</span>[m
+       </div>[m
+[36m@@ -790,8 +833,10 @@[m [masync function loadInsights() {[m
+     if (!r.ok) throw new Error(out.error || r.statusText);[m
+     if (INSIGHTS_KEY !== key) return;[m
+     INSIGHTS = out;[m
+[31m-    FACT = Math.floor(Date.now() / 86400000) % Math.max(out.facts.length, 1);[m
+[32m+[m[32m    FACT = Math.floor(Date.now() / 86400000) % Math.max(deck().length, 1);[m
+[32m+[m[32m    PRIZE_WEEK = out.prizes.length - 1;[m
+     renderFact();[m
+[32m+[m[32m    renderPrizes();[m
+     renderWatch();[m
+     renderInsights();[m
+     render();                      // repaint so the club hovers have data[m
+[36m@@ -800,14 +845,54 @@[m [masync function loadInsights() {[m
+   }[m
+ }[m
+ [m
+[32m+[m[32m// Facts at the current sass level, with a joke dropped in after every two.[m
+[32m+[m[32mfunction deck() {[m
+[32m+[m[32m  if (!INSIGHTS) return [];[m
+[32m+[m[32m  const facts = INSIGHTS.facts[SASS] || [], jokes = INSIGHTS.jokes[SASS] || [];[m
+[32m+[m[32m  const out = [];[m
+[32m+[m[32m  facts.forEach((f, i) => {[m
+[32m+[m[32m    out.push(f);[m
+[32m+[m[32m    if (i % 2 === 1 && jokes.length) out.push({ joke: jokes[((i - 1) / 2) % jokes.length] });[m
+[32m+[m[32m  });[m
+[32m+[m[32m  return out;[m
+[32m+[m[32m}[m
+[32m+[m
+ function renderFact() {[m
+[31m-  if (!INSIGHTS || !INSIGHTS.facts.length) return;[m
+[31m-  const f = INSIGHTS.facts[FACT % INSIGHTS.facts.length];[m
+[32m+[m[32m  const cards = deck();[m
+[32m+[m[32m  if (!cards.length) return;[m
+[32m+[m[32m  const f = cards[FACT % cards.length];[m
+   const el = $("fact");[m
+   el.hidden = false;[m
+[31m-  el.innerHTML = `<span class="tagword">Fact</span><span><b>${f.headline}.</b> ${f.detail}</span>[m
+[32m+[m[32m  el.innerHTML = `<span class="tagword">${f.joke ? "Joke" : "Fact"}</span>[m
+[32m+[m[32m    <span>${f.joke ? esc(f.joke) : `<b>${esc(f.headline)}.</b> ${esc(f.detail)}`}</span>[m
+[32m+[m[32m    <div class="seg sass" role="group" aria-label="Sass level"><span class="label">Sass</span>${[m
+[32m+[m[32m      SASS_LEVELS.map((l) => `<button data-sass="${l}" aria-pressed="${l === SASS}">${[m
+[32m+[m[32m        l[0].toUpperCase() + l.slice(1)}</button>`).join("")}</div>[m
+     <button id="nextfact">another</button>`;[m
+   $("nextfact").onclick = () => { FACT++; renderFact(); };[m
+[32m+[m[32m  el.querySelectorAll("[data-sass]").forEach((b) => { b.onclick = () => setSass(b.dataset.sass); });[m
+[32m+[m[32m}[m
+[32m+[m
+[32m+[m[32mfunction renderPrizes() {[m
+[32m+[m[32m  const weeks = INSIGHTS && INSIGHTS.prizes;[m
+[32m+[m[32m  $("prizes-card").hidden = !(weeks && weeks.length);[m
+[32m+[m[32m  if (!weeks || !weeks.length) return;[m
+[32m+[m[32m  PRIZE_WEEK = Math.max(0, Math.min(PRIZE_WEEK, weeks.length - 1));[m
+[32m+[m[32m  const wk = weeks[PRIZE_WEEK];[m
+[32m+[m[32m  const who = (names) => names.length > 3 ? `${names.length}-way tie` : names.map(esc).join(" & ");[m
+[32m+[m[32m  $("prizes").innerHTML = `[m
+[32m+[m[32m    <div class="step">[m
+[32m+[m[32m      <button id="prize-prev" aria-label="Previous gameweek" ${PRIZE_WEEK === 0 ? "disabled" : ""}>&lsaquo;</button>[m
+[32m+[m[32m      <b>GW${wk.gameweek}</b>${wk.provisional ? " still being played &mdash; prizes may change" : ""}[m
+[32m+[m[32m      <button id="prize-next" aria-label="Next gameweek" ${PRIZE_WEEK === weeks.length - 1 ? "disabled" : ""}>&rsaquo;</button>[m
+[32m+[m[32m    </div>[m
+[32m+[m[32m    ${wk.prizes.map((p) => `<div class="prize">[m
+[32m+[m[32m      <span class="award">${esc(p.award)}</span>[m
+[32m+[m[32m      <span><span class="who" title="${esc(p.winners.join(", "))}">${who(p.winners)}</span>[m
+[32m+[m[32m        <span class="blurb">&mdash; ${esc(p.blurb[SASS])}</span></span>[m
+[32m+[m[32m    </div>`).join("")}`;[m
+[32m+[m[32m  $("prize-prev").onclick = () => { PRIZE_WEEK--; renderPrizes(); };[m
+[32m+[m[32m  $("prize-next").onclick = () => { PRIZE_WEEK++; renderPrizes(); };[m
+ }[m
+ [m
+ function renderWatch() {[m
+[36m@@ -840,6 +925,32 @@[m [mfunction renderWatch() {[m
+         : `<p class="caveat">Everyone's fit.</p>`}[m
+         <p class="caveat">Squads are locked between windows, so these cannot be replaced.[m
+           Hover for the reason.</p>[m
+[32m+[m
+[32m+[m[32m        ${(() => {[m
+[32m+[m[32m          const suspensions = INSIGHTS.suspensions || {};[m
+[32m+[m[32m          const managers = suspensions.managers || [];[m
+[32m+[m[32m          const affected = managers.filter((m) => m.players.length);[m
+[32m+[m[32m          return `[m
+[32m+[m[32m            <h4 class="minih" style="margin-top:18px">[m
+[32m+[m[32m              Suspensions${suspensions.gameweek ? ` — GW${suspensions.gameweek}` : ""}[m
+[32m+[m[32m            </h4>[m
+[32m+[m[32m            ${affected.length ? affected.map((m) => `[m
+[32m+[m[32m              <div style="margin-bottom:6px">[m
+[32m+[m[32m                <span class="mswatch" style="background:${colourOf(m.manager)}"></span>[m
+[32m+[m[32m                <b style="font-size:13px">${esc(m.manager)}</b>[m
+[32m+[m[32m                <span class="caveat" style="margin-left:8px">[m
+[32m+[m[32m                  ${m.not_suspended}/${m.squad_size} not marked suspended[m
+[32m+[m[32m                </span><br>[m
+[32m+[m[32m                ${m.players.map((p) => `[m
+[32m+[m[32m                  <span class="pill">[m
+[32m+[m[32m                    <span class="susp-icon" role="img" aria-label="Suspended"[m
+[32m+[m[32m                      title="${esc(p.news)}"></span>${esc(p.name)}[m
+[32m+[m[32m                  </span>`).join("")}[m
+[32m+[m[32m              </div>`).join("")[m
+[32m+[m[32m            : `<p class="caveat">No recorded squad picks are marked suspended by FPL.</p>`}[m
+[32m+[m[32m            <p class="caveat">The count reflects suspension status only; it does not include injuries[m
+[32m+[m[32m              or other availability concerns shown above.</p>`;[m
+[32m+[m[32m        })()}[m
+       </div>[m
+       <div>[m
+         <h4 class="minih">Next five for the clubs people own</h4>[m
+[1mdiff --git a/robot.py b/robot.py[m
+[1mindex 51a6481..1175827 100644[m
+[1m--- a/robot.py[m
+[1m+++ b/robot.py[m
+[36m@@ -1,318 +1,47 @@[m
+[31m-"""The robot manager: the best squad that was actually available.[m
+[32m+[m[32mfrom difflib import restore[m
+ [m
+[31m-Hindsight only -- it picks after the goals are in, so its table position[m
+[31m-is a ceiling, not a rival. Two questions it answers:[m
+ [m
+[31m-  * for one gameweek, the best XI anyone could have fielded[m
+[31m-  * over a run of gameweeks, the best single squad held throughout[m
+[31m-    (which is a different question, because a win is won week by week:[m
+[31m-    four goals in one week beats nothing you did not need)[m
+[32m+[m[32mdef _suspensions(self):[m
+[32m+[m[32m    """Suspended picks in each manager's squad for the next unfinished GW."""[m
+[32m+[m[32m    events = fpl.gameweeks()[m
+[32m+[m[32m    gameweek = next([m
+[32m+[m[32m        (gw for gw in sorted(events) if not events[gw]["finished"]),[m
+[32m+[m[32m        None,[m
+[32m+[m[32m    )[m
+[32m+[m[32m    if gameweek is None:[m
+[32m+[m[32m        return {"gameweek": None, "managers": []}[m
+ [m
+[31m-Budget: prices come from prices.json (the league's own list). Without that[m
+[31m-file the robot picks freely and says so.[m
+[31m-[m
+[31m-One honest limit: the search maximises POINTS, which it does exactly. To[m
+[31m-keep it quick it then records the cheapest squad that achieves those[m
+[31m-points, not the highest-scoring one -- so the goals and goal difference it[m
+[31m-reports are a lower bound on what that points total could have looked[m
+[31m-like. Points are what the table is ranked on, so that is the number to[m
+[31m-trust.[m
+[31m-"""[m
+[31m-import json[m
+[31m-import os[m
+[31m-from itertools import combinations[m
+[31m-[m
+[31m-import fpl[m
+[31m-import standings[m
+[31m-[m
+[31m-PRICES_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), "prices.json")[m
+[31m-OWN = standings.OWN_GOALS[m
+[31m-[m
+[31m-[m
+[31m-def load_prices(path=PRICES_PATH):[m
+[31m-    """{"players": {id: cost}, "clubs": {name: cost}, "own_goals": cost} or None."""[m
+[31m-    if not os.path.exists(path):[m
+[31m-        return None[m
+[31m-    raw = json.load(open(path, encoding="utf-8"))[m
+[31m-    return {[m
+[31m-        "players": {int(k): v for k, v in raw.get("players", {}).items()},[m
+[31m-        "clubs": raw.get("clubs", {}),[m
+[31m-        "own_goals": raw.get("own_goals", 0),[m
+[31m-        "budget": raw.get("budget"),[m
+[31m-        # where each price came from: the league's list, solved from a squad,[m
+[31m-        # or borrowed from FPL. Surfaced on hover so an estimate is visible.[m
+[31m-        "price_source": raw.get("price_source", {}),[m
+[31m-    }[m
+[31m-[m
+[31m-[m
+[31m-# One source of truth for goals, shared with the table -- see[m
+[31m-# standings.goals_by_gameweek for why these are not computed twice.[m
+[31m-goals_by_week = standings.goals_by_gameweek[m
+[31m-own_by_week = standings.own_goals_by_gameweek[m
+[31m-[m
+[31m-[m
+[31m-def _club_pairs(conceded, weeks, clubs, prices=None):[m
+[31m-    """Every (gk, def) pair with its weekly goals-against.[m
+[31m-[m
+[31m-    Without a budget, a pair that concedes at least as much as another in[m
+[31m-    every week can never do better, so it is pruned. With a budget that[m
+[31m-    pruning is wrong -- a leakier defence may be the one you can afford --[m
+[31m-    so every pair is kept and the search sorts it out.[m
+[31m-    """[m
+[31m-    pairs = [][m
+[31m-    for a, b in combinations(sorted(clubs), 2):[m
+[31m-        ga = tuple(conceded.get(a, {}).get(w, 0) + conceded.get(b, {}).get(w, 0)[m
+[31m-                   for w in weeks)[m
+[31m-        pairs.append(((a, b), ga))[m
+[31m-    if not prices:[m
+[31m-        return [(pair, ga) for pair, ga in pairs[m
+[31m-                if not any(all(o <= g for o, g in zip(other, ga)) and other != ga[m
+[31m-                           for _, other in pairs)][m
+[31m-[m
+[31m-    # With a budget, a pair is only beaten by one that is both no dearer and[m
+[31m-    # no leakier in any week -- so prune on the two together, not on goals[m
+[31m-    # alone. That is exact, and it cuts the search enough to stay quick.[m
+[31m-    priced = [(pair, ga, prices["clubs"].get(pair[0], 0) + prices["clubs"].get(pair[1], 0))[m
+[31m-              for pair, ga in pairs[m
+[31m-              if pair[0] in prices["clubs"] and pair[1] in prices["clubs"]][m
+[31m-    keep = [][m
+[31m-    for pair, ga, cost in priced:[m
+[31m-        if not any(ocost <= cost and all(o <= g for o, g in zip(oga, ga))[m
+[31m-                   and (ocost, oga) != (cost, ga)[m
+[31m-                   for _, oga, ocost in priced):[m
+[31m-            keep.append((pair, ga))[m
+[31m-    return keep[m
+[31m-[m
+[31m-[m
+[31m-def price_of(pick, prices):[m
+[31m-    return prices["own_goals"] if pick == OWN else prices["players"].get(pick)[m
+[31m-[m
+[31m-[m
+[31m-def _candidates(goals, own, weeks, prices):[m
+[31m-    """Pick -> per-week goal vector, with hopeless and duplicate picks dropped.[m
+[31m-[m
+[31m-    A player the league never priced cannot be bought, so once a price[m
+[31m-    list is loaded anyone missing from it is not a legal pick.[m
+[31m-    """[m
+[31m-    vectors = {}[m
+[31m-    for pid in {p for gw in weeks for p in goals.get(gw, {})}:[m
+[31m-        vec = tuple(goals.get(gw, {}).get(pid, 0) for gw in weeks)[m
+[31m-        if any(vec) and not (prices and price_of(pid, prices) is None):[m
+[31m-            vectors[pid] = vec[m
+[31m-    if any(own.get(w, 0) for w in weeks):[m
+[31m-        vectors[OWN] = tuple(own.get(w, 0) for w in weeks)[m
+[31m-[m
+[31m-    # Identical records are interchangeable, so keep at most seven of each --[m
+[31m-    # cheapest first when prices are known.[m
+[31m-    by_vec = {}[m
+[31m-    for pid, vec in vectors.items():[m
+[31m-        by_vec.setdefault(vec, []).append(pid)[m
+[31m-    out = [][m
+[31m-    for vec, ids in by_vec.items():[m
+[31m-        if prices:[m
+[31m-            ids.sort(key=lambda p: price_of(p, prices))[m
+[31m-        out.extend((pid, vec) for pid in ids[:7])[m
+[31m-    return out[m
+[31m-[m
+[31m-[m
+[31m-def best_fixed(weeks, goals, own, conceded, clubs, prices=None, budget=None):[m
+[31m-    """The best single squad to have held across `weeks`.[m
+[31m-[m
+[31m-    Points are won week by week, so goals beyond what a week needed are[m
+[31m-    worth nothing -- capping each week at one more than its goals-against[m
+[31m-    keeps the search space small without changing any result.[m
+[31m-    """[m
+[31m-    cands = _candidates(goals, own, weeks, prices)[m
+[31m-    best = None[m
+[31m-[m
+[31m-    for (gk, df), ga in _club_pairs(conceded, weeks, clubs, prices):[m
+[31m-        base = 0.0[m
+[31m-        if prices:[m
+[31m-            if gk not in prices["clubs"] or df not in prices["clubs"]:[m
+[31m-                continue[m
+[31m-            base = prices["clubs"][gk] + prices["clubs"][df][m
+[31m-            if budget is not None and base > budget:[m
+[31m-                continue[m
+[31m-[m
+[31m-        caps = tuple(g + 1 for g in ga)[m
+[31m-        start = tuple(0 for _ in weeks)[m
+[31m-        # dp[slots][capped goals] = (cheapest way to reach it, those picks).[m
+[31m-        # Tracking the CHEAPEST squad per state is what makes the budget[m
+[31m-        # correct: keeping the highest-scoring one instead would throw away[m
+[31m-        # an affordable squad in favour of one that cannot be bought.[m
+[31m-        dp = {0: {start: (base, ())}}[m
+[31m-        for k in range(7):[m
+[31m-            nxt = {}[m
+[31m-            for state, (spend, picks) in dp[k].items():[m
+[31m-                for pid, vec in cands:[m
+[31m-                    if pid in picks:[m
+[31m-                        continue[m
+[31m-                    cost = spend + (price_of(pid, prices) if prices else 0)[m
+[31m-                    if budget is not None and cost > budget:[m
+[31m-                        continue[m
+[31m-                    ns = tuple(min(s + v, c) for s, v, c in zip(state, vec, caps))[m
+[31m-                    cur = nxt.get(ns)[m
+[31m-                    if cur is None or cost < cur[0]:[m
+[31m-                        nxt[ns] = (cost, picks + (pid,))[m
+[31m-            dp[k + 1] = nxt[m
+[31m-[m
+[31m-        for state, (spend, picks) in dp[7].items():[m
+[31m-            if budget is not None and spend > budget:[m
+[31m-                continue[m
+[31m-            pts = sum(3 if s > g else (1 if s == g else 0) for s, g in zip(state, ga))[m
+[31m-            gs = [sum(goals.get(w, {}).get(p, 0) if p != OWN else own.get(w, 0)[m
+[31m-                      for p in picks) for w in weeks][m
+[31m-            score = (pts, sum(gs) - sum(ga), sum(gs), -spend)[m
+[31m-            if best is None or score > best[0]:[m
+[31m-                best = (score, {"gk_club": gk, "def_club": df, "picks": list(picks),[m
+[31m-                                "ga": list(ga), "pts": pts, "gs": sum(gs),[m
+[31m-                                "gd": sum(gs) - sum(ga), "spend": round(spend, 1),[m
+[31m-                                "weekly_gs": gs})[m
+[31m-    return best[1] if best else None[m
+[31m-[m
+[31m-[m
+[31m-def best_value(weeks, goals, own, conceded, clubs, prices, budget):[m
+[31m-    """The other bot: spend the lot, maximise goal difference over `weeks`.[m
+[31m-[m
+[31m-    Where the thrifty bot stops as soon as it has the points, this one[m
+[31m-    treats the budget as a target. It optimises the season aggregate[m
+[31m-    (goals for minus goals against), not the week-by-week record, so it[m
+[31m-    can post a huge goal difference and still drop a week it happened to[m
+[31m-    blank in -- which is the honest trade-off between the two.[m
+[31m-    """[m
+[31m-    if not prices or budget is None:[m
+[31m-        return None[m
+[31m-    step = 0.5[m
+[31m-    cap = int(round(budget / step))[m
+[31m-[m
+[31m-    items = [][m
+[31m-    for pid, vec in _candidates(goals, own, weeks, prices):[m
+[31m-        items.append((pid, sum(vec), int(round(price_of(pid, prices) / step))))[m
+[31m-[m
+[31m-    # (picks used, half-millions spent) -> (goals, squad). Carrying the squad[m
+[31m-    # rather than back-pointers keeps a pick from being spent twice.[m
+[31m-    dp = {(0, 0): (0, ())}[m
+[31m-    for pid, gained, cost in items:[m
+[31m-        for (k, c), (got, squad) in list(dp.items()):[m
+[31m-            if k == 7 or c + cost > cap:[m
+[31m-                continue[m
+[31m-            key = (k + 1, c + cost)[m
+[31m-            cur = dp.get(key)[m
+[31m-            if cur is None or got + gained > cur[0]:[m
+[31m-                dp[key] = (got + gained, squad + (pid,))[m
+[31m-[m
+[31m-    # best goals for each spend level, and the cheapest way to reach it[m
+[31m-    by_spend = {c: dp[(7, c)] for (k, c) in dp if k == 7}[m
+[31m-    if not by_spend:[m
+[31m-        return None[m
+[31m-[m
+[31m-    best = None[m
+[31m-    for (gk, df), ga in _club_pairs(conceded, weeks, clubs, prices):[m
+[31m-        if gk not in prices["clubs"] or df not in prices["clubs"]:[m
+[31m-            continue[m
+[31m-        spent = int(round((prices["clubs"][gk] + prices["clubs"][df]) / step))[m
+[31m-        room = cap - spent[m
+[31m-        if room < 0:[m
+[31m-            continue[m
+[31m-        for c, (got, squad) in by_spend.items():[m
+[31m-            if c > room:[m
+[31m-                continue[m
+[31m-            score = (got - sum(ga), got, -(c + spent))[m
+[31m-            if best is None or score > best[0]:[m
+[31m-                best = (score, (gk, df, ga, squad))[m
+[31m-    if not best:[m
+[31m-        return None[m
+[31m-    gk, df, ga, picks = best[1][m
+[31m-    picks = list(picks)[m
+[31m-[m
+[31m-    weekly = [sum(own.get(w, 0) if p == OWN else goals.get(w, {}).get(p, 0) for p in picks)[m
+[31m-              for w in weeks][m
+[31m-    spend = (prices["clubs"][gk] + prices["clubs"][df][m
+[31m-             + sum(price_of(p, prices) for p in picks))[m
+[31m-    return {"gk_club": gk, "def_club": df, "picks": picks, "ga": list(ga),[m
+[31m-            "pts": sum(3 if s > g else (1 if s == g else 0) for s, g in zip(weekly, ga)),[m
+[31m-            "gs": sum(weekly), "gd": sum(weekly) - sum(ga),[m
+[31m-            "spend": round(spend, 1), "weekly_gs": weekly}[m
+[31m-[m
+[31m-[m
+[31m-def best_week(gw, goals, own, conceded, clubs, prices=None, budget=None):[m
+[31m-    """The best XI for a single gameweek."""[m
+[31m-    return best_fixed([gw], goals, own, conceded, clubs, prices, budget)[m
+[31m-[m
+[31m-[m
+[31m-def build(weeks=None, ttl=fpl.CACHE_TTL):[m
+     league = standings.load_league()[m
+[31m-    data = standings.build(ttl)[m
+[31m-    weeks = weeks or data["played"][m
+[31m-    conceded = standings.conceded_by_club(ttl)[m
+[31m-    clubs = sorted(conceded)[m
+[31m-    goals = goals_by_week(weeks, league.get("adjustments", []), ttl)[m
+[31m-    own = own_by_week(weeks, ttl)[m
+[31m-    prices = load_prices()[m
+[31m-    budget = prices["budget"] if prices else None[m
+[31m-[m
+[31m-    # A club with no result yet in a half-played gameweek looks like it has[m
+[31m-    # conceded nothing, which would hand the robot a free clean sheet.[m
+[31m-    played_in = {gw: {c for c in clubs if gw in conceded.get(c, {})} for gw in weeks}[m
+[31m-[m
+[31m-    per_week = {}[m
+[31m-    for gw in weeks:[m
+[31m-        pick = best_week(gw, goals, own, conceded, sorted(played_in[gw]),[m
+[31m-                         prices, budget)[m
+[31m-        if pick:[m
+[31m-            pick["provisional"] = gw in data["provisional"][m
+[31m-        per_week[gw] = pick[m
+[32m+[m[32m    players = {p["id"]: p for p in fpl.players()}[m
+[32m+[m[32m    managers = [][m
+ [m
+[31m-    settled = [gw for gw in weeks if gw not in data["provisional"]][m
+[31m-    return {[m
+[31m-        "weeks": weeks,[m
+[31m-        "capped": bool(prices),[m
+[31m-        "budget": budget,[m
+[31m-        "unpriced_picks": sorted([m
+[31m-            {pick[1] for m in league["managers"].values() for sq in m["squads"][m
+[31m-             for pick in sq["picks"][m
+[31m-             if prices and pick != OWN and price_of(pick[0], prices) is None}),[m
+[31m-        "provisional": [gw for gw in weeks if gw in data["provisional"]],[m
+[31m-        "per_week": per_week,[m
+[31m-        "fixed": best_fixed(weeks, goals, own, conceded,[m
+[31m-                            sorted(set.intersection(*played_in.values())[m
+[31m-                                   if played_in else clubs),[m
+[31m-                            prices, budget),[m
+[31m-        "fixed_settled": (best_fixed(settled, goals, own, conceded,[m
+[31m-                                     sorted(set.intersection(*[played_in[g] for g in settled]))[m
+[31m-                                     , prices, budget) if settled and settled != weeks else None),[m
+[31m-        "value_per_week": {gw: best_value([gw], goals, own, conceded,[m
+[31m-                                          sorted(played_in[gw]), prices, budget)[m
+[31m-                           for gw in weeks},[m
+[31m-        "value_fixed": best_value(weeks, goals, own, conceded,[m
+[31m-                                  sorted(set.intersection(*played_in.values())[m
+[31m-                                         if played_in else clubs), prices, budget),[m
+[31m-    }[m
+[31m-[m
+[31m-[m
+[31m-def name_of(pick, names):[m
+[31m-    return "Own Goals" if pick == OWN else names.get(pick, str(pick))[m
+[31m-[m
+[31m-[m
+[31m-if __name__ == "__main__":[m
+[31m-    import sys[m
+[32m+[m[32m    for name, manager in league["managers"].items():[m
+[32m+[m[32m        squad = standings._squad_at(manager["squads"], gameweek)[m
+[32m+[m[32m        if not squad:[m
+[32m+[m[32m            continue[m
+ [m
+[31m-    weeks = [int(a) for a in sys.argv[1:]] or None[m
+[31m-    names = {p["id"]: p["name"] for p in fpl.players()}[m
+[31m-    out = build(weeks)[m
+[31m-    print("ROBOT MANAGER%s\n" % ("" if out["capped"] else "   (no price list -- budget cap NOT applied)"))[m
+[32m+[m[32m        suspended = [][m
+[32m+[m[32m        for pick in squad["picks"]:[m
+[32m+[m[32m            if pick == transfers.OWN:[m
+[32m+[m[32m                continue[m
+ [m
+[31m-    for gw, b in out["per_week"].items():[m
+[31m-        print("GW%d best XI  %d-%d  %s%s" % (gw, b["gs"], b["ga"][0],[m
+[31m-              {3: "win", 1: "draw", 0: "loss"}[b["pts"]],[m
+[31m-              "   £%.1fm of £%.0fm" % (b["spend"], out["budget"]) if out["capped"] else ""))[m
+[31m-        print("   clubs   %s + %s" % (b["gk_club"], b["def_club"]))[m
+[31m-        print("   scorers %s\n" % ", ".join(sorted(name_of(p, names) for p in b["picks"])))[m
+[32m+[m[32m            player = players.get(pick[0])[m
+[32m+[m[32m            if player and player.get("status") == "s":[m
+[32m+[m[32m                suspended.append({[m
+[32m+[m[32m                    "name": player["name"],[m
+[32m+[m[32m                    "news": player.get("news") or ([m
+[32m+[m[32m                        "FPL marks this player as suspended but has not "[m
+[32m+[m[32m                        "provided a duration or return date."[m
+[32m+[m[32m                    ),[m
+[32m+[m[32m                })[m
+[32m+[m
+[32m+[m[32m        managers.append({[m
+[32m+[m[32m            "manager": name,[m
+[32m+[m[32m            "squad_size": len(squad["picks"]),[m
+[32m+[m[32m            "not_suspended": len(squad["picks"]) - len(suspended),[m
+[32m+[m[32m            "players": suspended,[m
+[32m+[m[32m        })[m
+[32m+[m
+[32m+[m[32m    return {"gameweek": gameweek, "managers": managers}[m
+[32m+[m[32mGit restore -- robot.py[m
+ [m
+[31m-    f = out["fixed"][m
+[31m-    print("Best single squad held across GW%s:" % ",".join(map(str, out["weeks"])))[m
+[31m-    print("   clubs   %s + %s" % (f["gk_club"], f["def_club"]))[m
+[31m-    print("   scorers %s" % ", ".join(sorted(name_of(p, names) for p in f["picks"])))[m
+[31m-    print("   PTS %d   GS %d   GA %d   GD %+d%s"[m
+[31m-          % (f["pts"], f["gs"], sum(f["ga"]), f["gd"],[m
+[31m-             "   £%.1fm of £%.0fm" % (f["spend"], out["budget"]) if out["capped"] else ""))[m

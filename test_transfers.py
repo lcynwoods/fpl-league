@@ -189,7 +189,7 @@ def test_save_is_atomic_and_round_trips():
     folder = tempfile.mkdtemp()
     path = os.path.join(folder, "teams.json")
     transfers.save(league, path)
-    assert json.load(open(path)) == league
+    assert json.load(open(path, encoding="utf-8")) == league
     assert os.listdir(folder) == ["teams.json"], "temp file left behind"
 
 
@@ -197,7 +197,7 @@ def test_the_log_only_appends():
     path = os.path.join(tempfile.mkdtemp(), "log.jsonl")
     transfers.log({"event": "a"}, path)
     transfers.log({"event": "b"}, path)
-    assert [json.loads(l)["event"] for l in open(path)] == ["a", "b"]
+    assert [json.loads(l)["event"] for l in open(path, encoding="utf-8")] == ["a", "b"]
 
 
 def test_the_real_league_has_one_closed_window():

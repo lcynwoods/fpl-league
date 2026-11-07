@@ -25,7 +25,7 @@ OWN_GOALS = "OWN"
 
 
 def load_league(path=TEAMS_PATH):
-    return json.load(open(path))
+    return json.load(open(path, encoding="utf-8"))
 
 
 def conceded_by_club(ttl=fpl.CACHE_TTL):

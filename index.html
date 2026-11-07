@@ -232,6 +232,26 @@
     margin-left: auto; background: transparent; color: var(--text-muted);
     border: 1px solid var(--border); border-radius: 6px; padding: 2px 9px; font-size: 12px;
   }
+  .fact .sass { margin-left: auto; align-items: center; }
+  .fact .sass .label { font-size: 10px; font-weight: 700; letter-spacing: 0.07em;
+                       text-transform: uppercase; color: var(--text-muted); padding: 0 8px; }
+  .fact .sass button { margin-left: 0; border: none; border-radius: 0; }
+  .fact .sass + button { margin-left: 0; }
+
+  .prizes { padding: 4px 18px 16px; }
+  .prizes .step { display: flex; align-items: center; gap: 10px; margin-bottom: 8px;
+                  font-size: 13px; color: var(--text-secondary); }
+  .prizes .step b { color: var(--text-primary); font-size: 15px; }
+  .prizes .step button { background: transparent; color: var(--text-secondary);
+                         border: 1px solid var(--border); border-radius: 6px; padding: 1px 9px; }
+  .prizes .step button:disabled { opacity: 0.35; cursor: default; }
+  .prize { display: grid; grid-template-columns: 150px 1fr; gap: 4px 14px;
+           padding: 9px 0; border-top: 1px solid var(--border); font-size: 13px; }
+  .prize .award { font-size: 11px; font-weight: 700; letter-spacing: 0.05em;
+                  text-transform: uppercase; color: var(--text-muted); padding-top: 2px; }
+  .prize .who { font-weight: 650; color: var(--text-primary); }
+  .prize .blurb { color: var(--text-secondary); }
+  @media (max-width: 560px) { .prize { grid-template-columns: 1fr; } }
   td.clubs { cursor: help; }
   .mini { width: 100%; border-collapse: collapse; margin-top: 4px; }
   .mini th, .mini td { padding: 5px 8px; font-size: 13px; text-align: right; }
@@ -380,6 +400,11 @@
   <div class="card" id="podium-card" hidden>
     <h2>Podium</h2>
     <div class="podium" id="podium"></div>
+  </div>
+
+  <div class="card" id="prizes-card" hidden>
+    <h2>Spot prizes <span style="text-transform:none;letter-spacing:0;font-weight:400">&mdash; awarded on the week&rsquo;s results, whether you like it or not</span></h2>
+    <div class="prizes" id="prizes"></div>
   </div>
 
   <div class="card">
@@ -678,7 +703,19 @@ function chart(table) {
 
 let rows_cached = [];
 let ROBOT_KEY = null;
-let INSIGHTS = null, INSIGHTS_KEY = null, FACT = 0;
+let INSIGHTS = null, INSIGHTS_KEY = null, FACT = 0, PRIZE_WEEK = null;
+
+// The sass dial is a per-viewer preference, so it lives in this browser
+// only -- and the page must still work when storage is blocked.
+const SASS_LEVELS = ["mild", "spicy", "savage"];
+let SASS = "spicy";
+try { if (SASS_LEVELS.includes(localStorage.getItem("sass"))) SASS = localStorage.getItem("sass"); } catch (e) {}
+function setSass(level) {
+  SASS = level;
+  try { localStorage.setItem("sass", level); } catch (e) {}
+  renderFact();
+  renderPrizes();
+}
 
 /** Stable colour per manager: position in the league's own order, so a
  *  manager keeps their colour wherever they appear and whatever the sort. */
@@ -753,7 +790,7 @@ function renderRobot(out, weeks) {
       <div class="line">
         <span class="botname">${b.name}</span>
         <span class="score">${p.gs}\u2013${ga}</span>
-        <span>${p.pts} pt${p.pts === 1 ? "" : "s"}</span>
+        <span>${p.pts} pt${p.pts === 1 ? "" : "s"} (${p.gs}\u2013${p.ga})</span>
         <span class="vs">GD ${p.gd > 0 ? "+" : ""}${p.gd}${
           out.capped ? ` \u00b7 \u00a3${p.spend}m of \u00a3${out.budget}m` : ""} \u00b7 ${b.blurb}</span>
       </div>
@@ -790,8 +827,10 @@ async function loadInsights() {
     if (!r.ok) throw new Error(out.error || r.statusText);
     if (INSIGHTS_KEY !== key) return;
     INSIGHTS = out;
-    FACT = Math.floor(Date.now() / 86400000) % Math.max(out.facts.length, 1);
+    FACT = Math.floor(Date.now() / 86400000) % Math.max(deck().length, 1);
+    PRIZE_WEEK = out.prizes.length - 1;
     renderFact();
+    renderPrizes();
     renderWatch();
     renderInsights();
     render();                      // repaint so the club hovers have data
@@ -800,14 +839,54 @@ async function loadInsights() {
   }
 }
 
+// Facts at the current sass level, with a joke dropped in after every two.
+function deck() {
+  if (!INSIGHTS) return [];
+  const facts = INSIGHTS.facts[SASS] || [], jokes = INSIGHTS.jokes[SASS] || [];
+  const out = [];
+  facts.forEach((f, i) => {
+    out.push(f);
+    if (i % 2 === 1 && jokes.length) out.push({ joke: jokes[((i - 1) / 2) % jokes.length] });
+  });
+  return out;
+}
+
 function renderFact() {
-  if (!INSIGHTS || !INSIGHTS.facts.length) return;
-  const f = INSIGHTS.facts[FACT % INSIGHTS.facts.length];
+  const cards = deck();
+  if (!cards.length) return;
+  const f = cards[FACT % cards.length];
   const el = $("fact");
   el.hidden = false;
-  el.innerHTML = `<span class="tagword">Fact</span><span><b>${f.headline}.</b> ${f.detail}</span>
+  el.innerHTML = `<span class="tagword">${f.joke ? "Joke" : "Fact"}</span>
+    <span>${f.joke ? esc(f.joke) : `<b>${esc(f.headline)}.</b> ${esc(f.detail)}`}</span>
+    <div class="seg sass" role="group" aria-label="Sass level"><span class="label">Sass</span>${
+      SASS_LEVELS.map((l) => `<button data-sass="${l}" aria-pressed="${l === SASS}">${
+        l[0].toUpperCase() + l.slice(1)}</button>`).join("")}</div>
     <button id="nextfact">another</button>`;
   $("nextfact").onclick = () => { FACT++; renderFact(); };
+  el.querySelectorAll("[data-sass]").forEach((b) => { b.onclick = () => setSass(b.dataset.sass); });
+}
+
+function renderPrizes() {
+  const weeks = INSIGHTS && INSIGHTS.prizes;
+  $("prizes-card").hidden = !(weeks && weeks.length);
+  if (!weeks || !weeks.length) return;
+  PRIZE_WEEK = Math.max(0, Math.min(PRIZE_WEEK, weeks.length - 1));
+  const wk = weeks[PRIZE_WEEK];
+  const who = (names) => names.length > 3 ? `${names.length}-way tie` : names.map(esc).join(" & ");
+  $("prizes").innerHTML = `
+    <div class="step">
+      <button id="prize-prev" aria-label="Previous gameweek" ${PRIZE_WEEK === 0 ? "disabled" : ""}>&lsaquo;</button>
+      <b>GW${wk.gameweek}</b>${wk.provisional ? " still being played &mdash; prizes may change" : ""}
+      <button id="prize-next" aria-label="Next gameweek" ${PRIZE_WEEK === weeks.length - 1 ? "disabled" : ""}>&rsaquo;</button>
+    </div>
+    ${wk.prizes.map((p) => `<div class="prize">
+      <span class="award">${esc(p.award)}</span>
+      <span><span class="who" title="${esc(p.winners.join(", "))}">${who(p.winners)}</span>
+        <span class="blurb">&mdash; ${esc(p.blurb[SASS])}</span></span>
+    </div>`).join("")}`;
+  $("prize-prev").onclick = () => { PRIZE_WEEK--; renderPrizes(); };
+  $("prize-next").onclick = () => { PRIZE_WEEK++; renderPrizes(); };
 }
 
 function renderWatch() {

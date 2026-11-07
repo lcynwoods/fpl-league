@@ -176,3 +176,27 @@ def test_every_owned_club_has_a_run_to_show():
         for role in ("gk_club", "def_club"):
             assert m[role] in up, m[role]
             assert up[m[role]]["owners"], m[role]
+
+
+def test_the_sass_dial_changes_the_tone_never_the_numbers():
+    """Every number a mild fact states must survive into the savage one."""
+    import re
+    talk = insights.banter(DATA, WEEKS)
+    levels = [talk["facts"][level] for level in insights.SASS]
+    assert len({len(facts) for facts in levels}) == 1
+    for mild, savage in zip(talk["facts"]["mild"], talk["facts"]["savage"]):
+        numbers = lambda fact: set(re.findall(r"\d+(?:\.\d+)?", " ".join(fact)))
+        assert numbers(mild) <= numbers(savage), (mild, savage)
+
+
+def test_spot_prizes_go_to_the_right_managers():
+    weeks = {(m["manager"], w["gameweek"]): w for m in DATA["managers"] for w in m["weeks"]}
+    for wk in insights.spot_prizes(DATA, WEEKS):
+        played = {m: w for (m, gw), w in weeks.items() if gw == wk["gameweek"]}
+        prizes = {p["award"]: p["winners"] for p in wk["prizes"]}
+        most = max(w["gs"] for w in played.values())
+        assert prizes.get("Golden Boot", []) == [m for m, w in played.items() if w["gs"] == most and most]
+        least = min(w["ga"] for w in played.values())
+        assert prizes["Brick Wall"] == [m for m, w in played.items() if w["ga"] == least]
+        for p in wk["prizes"]:
+            assert set(p["blurb"]) == set(insights.SASS), p

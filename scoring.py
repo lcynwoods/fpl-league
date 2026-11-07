@@ -54,7 +54,7 @@ def validate_rules(rules):
 
 
 def load_rules(path=RULES_PATH):
-    with open(path) as fh:
+    with open(path, encoding="utf-8") as fh:
         return validate_rules(json.load(fh))
 
 

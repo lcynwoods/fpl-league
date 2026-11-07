@@ -8,6 +8,7 @@ a local dashboard: bound to localhost, stdlib only, no auth.
 """
 import datetime
 import json
+from operator import index
 import os
 import sys
 import tempfile
@@ -139,6 +140,7 @@ class Handler(BaseHTTPRequestHandler):
         try:
             data = standings.build()
             span = weeks or data["played"]
+            talk = insights.banter(data, span)
             out = {
                 "weeks": span,
                 "clubs": insights.club_stats(span),
@@ -150,8 +152,11 @@ class Handler(BaseHTTPRequestHandler):
                 "availability": insights.availability(),
                 "upcoming": insights.upcoming(),
                 "shape": insights.gameweek_shape(),
-                "facts": [{"headline": h, "detail": d}
-                          for h, d in insights.facts(data, span)],
+                # every sass level at once, so the dial needs no round trip
+                "facts": {level: [{"headline": h, "detail": d} for h, d in facts]
+                          for level, facts in talk["facts"].items()},
+                "jokes": talk["jokes"],
+                "prizes": insights.spot_prizes(data, span),
             }
             body = json.dumps(out)
             ROBOT_CACHE[key] = body
@@ -332,7 +337,7 @@ class Handler(BaseHTTPRequestHandler):
     def do_GET(self):
         path = urllib.parse.urlparse(self.path).path
         if path in ("/", "/index.html"):
-            with open(os.path.join(HERE, "index.html")) as fh:
+            with open(os.path.join(HERE, "index.html"), encoding="utf-8") as fh:
                 return self._send(fh.read(), "text/html; charset=utf-8")
         if path == "/api/standings":
             return self._table(fpl.CACHE_TTL)
@@ -373,3 +378,4 @@ if __name__ == "__main__":
         ThreadingHTTPServer(("127.0.0.1", PORT), Handler).serve_forever()
     except KeyboardInterrupt:
         print("\nstopped")
+

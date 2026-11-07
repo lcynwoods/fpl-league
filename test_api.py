@@ -75,7 +75,7 @@ def test_cache_writes_survive_concurrent_readers():
             def reader():
                 while not stop[0]:
                     try:
-                        with open(path) as fh:
+                        with open(path, encoding="utf-8") as fh:
                             _json.load(fh)
                     except ValueError as exc:
                         errors.append(str(exc))

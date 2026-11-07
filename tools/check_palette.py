@@ -19,7 +19,7 @@ SURFACES = {"light": "#fcfcfb", "dark": "#1a1a19"}
 
 
 def check(path=os.path.join(HERE, "palette.json")):
-    pal = json.load(open(path))
+    pal = json.load(open(path, encoding="utf-8"))
     floors = pal.get("_minimums", {})
     ok = True
     for mode, surface in SURFACES.items():
